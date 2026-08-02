@@ -133,7 +133,13 @@ export function MusicPlayer({ youtubeId, startAt = 0, endAt }: MusicPlayerProps)
         </button>
       </div>
 
-      <div className="hidden">
+      {/*
+        ห้ามใช้ display:none (เช่น class "hidden") ครอบ YouTube player เด็ดขาด
+        เพราะเบราว์เซอร์หลายตัวจะหยุดเล่นเสียง/วิดีโอที่ไม่ได้ "แสดงผล" อยู่จริง
+        ใช้ตำแหน่ง absolute + ขนาด 1px + opacity 0 แทน เพื่อให้เบราว์เซอร์ยังนับว่า element
+        นี้ visible อยู่ (เสียงเลยเล่นได้ปกติ) แต่ผู้ใช้มองไม่เห็น
+      */}
+      <div className="absolute w-px h-px overflow-hidden opacity-0 pointer-events-none">
         <YouTube
           videoId={youtubeId}
           opts={opts}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { EditorData } from "@/app/(dashboard)/editor/page";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,32 @@ function parseTime(timeStr: string): number {
 export function MusicPicker({ data, onChange }: { data: EditorData; onChange: (d: Partial<EditorData>) => void }) {
   const [query, setQuery] = useState("");
   const [showTrim, setShowTrim] = useState(false);
+
+  // เก็บข้อความดิบที่ผู้ใช้กำลังพิมพ์แยกจากค่าจริง (วินาที) ใน data
+  // ไม่แปลง/format ค่ากลับเข้าช่องทุกครั้งที่พิมพ์ เพราะจะทำให้พิมพ์ต่อไม่ได้
+  const [startText, setStartText] = useState(
+    data.youtubeStartAt > 0 ? formatTime(data.youtubeStartAt) : ""
+  );
+  const [endText, setEndText] = useState(
+    data.youtubeEndAt ? formatTime(data.youtubeEndAt) : ""
+  );
+
+  // ถ้าค่าจริงเปลี่ยนจากที่อื่น (เช่น โหลดข้อมูลหน้าเดิมมาใหม่) ให้ sync ช่องข้อความตาม
+  useEffect(() => {
+    setStartText(data.youtubeStartAt > 0 ? formatTime(data.youtubeStartAt) : "");
+  }, [data.youtubeStartAt]);
+
+  useEffect(() => {
+    setEndText(data.youtubeEndAt ? formatTime(data.youtubeEndAt) : "");
+  }, [data.youtubeEndAt]);
+
+  const commitStartTime = () => {
+    onChange({ youtubeStartAt: startText ? parseTime(startText) : 0 });
+  };
+
+  const commitEndTime = () => {
+    onChange({ youtubeEndAt: endText ? parseTime(endText) : null });
+  };
 
   const handleSearch = () => {
     const id = extractYoutubeId(query);
@@ -102,8 +128,14 @@ export function MusicPicker({ data, onChange }: { data: EditorData; onChange: (d
                   <Label className="text-sm text-amber-700">เริ่มต้นที่</Label>
                   <Input
                     placeholder="0:00"
-                    value={data.youtubeStartAt > 0 ? formatTime(data.youtubeStartAt) : ""}
-                    onChange={e => onChange({ youtubeStartAt: parseTime(e.target.value) })}
+                    value={startText}
+                    onChange={e => setStartText(e.target.value)}
+                    onBlur={commitStartTime}
+                    onKeyDown={e => {
+                      if (e.key === "Enter") {
+                        e.currentTarget.blur();
+                      }
+                    }}
                     className="rounded-lg border-amber-200 focus:ring-amber-400"
                   />
                   <p className="text-xs text-amber-600">เช่น 0:30, 1:45</p>
@@ -112,8 +144,14 @@ export function MusicPicker({ data, onChange }: { data: EditorData; onChange: (d
                   <Label className="text-sm text-amber-700">สิ้นสุดที่</Label>
                   <Input
                     placeholder="สุดเพลง"
-                    value={data.youtubeEndAt ? formatTime(data.youtubeEndAt) : ""}
-                    onChange={e => onChange({ youtubeEndAt: e.target.value ? parseTime(e.target.value) : null })}
+                    value={endText}
+                    onChange={e => setEndText(e.target.value)}
+                    onBlur={commitEndTime}
+                    onKeyDown={e => {
+                      if (e.key === "Enter") {
+                        e.currentTarget.blur();
+                      }
+                    }}
                     className="rounded-lg border-amber-200 focus:ring-amber-400"
                   />
                   <p className="text-xs text-amber-600">เว้นว่าง = เล่นจนจบ</p>
