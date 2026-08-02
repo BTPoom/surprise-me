@@ -22,7 +22,7 @@ interface ThemeSelectorProps {
   onChangeTheme: (themeId: string) => void;
 }
 
-export default function ThemeSelector({ selectedTheme, onChangeTheme }: ThemeSelectorProps) {
+export function ThemeSelector({ selectedTheme, onChangeTheme }: ThemeSelectorProps) {
   return (
     <div className="space-y-3">
       <label className="text-sm font-semibold text-gray-700 block">เลือกธีมความรู้สึก</label>
