@@ -3,43 +3,28 @@ import { FileText, Globe, Eye, MessageCircle } from "lucide-react";
 
 interface StatsCardsProps {
   stats?: {
-    totalPages: number;
-    publishedPages: number;
-    totalViews: number;
-    totalReactions: number;
+    total?: number;
+    published?: number;
+    opens?: number;
+    reactions?: number;
+    totalPages?: number;
+    publishedPages?: number;
+    totalViews?: number;
+    totalReactions?: number;
   };
 }
 
 export function StatsCards({ stats }: StatsCardsProps) {
+  const total = stats?.total ?? stats?.totalPages ?? 0;
+  const published = stats?.published ?? stats?.publishedPages ?? 0;
+  const opens = stats?.opens ?? stats?.totalViews ?? 0;
+  const reactions = stats?.reactions ?? stats?.totalReactions ?? 0;
+
   const items = [
-    {
-      title: "หน้าทั้งหมด",
-      value: stats?.totalPages ?? 0,
-      icon: FileText,
-      color: "text-rose-500",
-      bgColor: "bg-rose-50",
-    },
-    {
-      title: "เผยแพร่แล้ว",
-      value: stats?.publishedPages ?? 0,
-      icon: Globe,
-      color: "text-pink-500",
-      bgColor: "bg-pink-50",
-    },
-    {
-      title: "ยอดเปิดซอง",
-      value: stats?.totalViews ?? 0,
-      icon: Eye,
-      color: "text-purple-500",
-      bgColor: "bg-purple-50",
-    },
-    {
-      title: "ข้อความตอบกลับ",
-      value: stats?.totalReactions ?? 0,
-      icon: MessageCircle,
-      color: "text-amber-500",
-      bgColor: "bg-amber-50",
-    },
+    { title: "หน้าทั้งหมด", value: total, icon: FileText, color: "text-rose-500", bgColor: "bg-rose-50" },
+    { title: "เผยแพร่แล้ว", value: published, icon: Globe, color: "text-pink-500", bgColor: "bg-pink-50" },
+    { title: "ยอดเปิดซอง", value: opens, icon: Eye, color: "text-purple-500", bgColor: "bg-purple-50" },
+    { title: "ข้อความตอบกลับ", value: reactions, icon: MessageCircle, color: "text-amber-500", bgColor: "bg-amber-50" },
   ];
 
   return (
