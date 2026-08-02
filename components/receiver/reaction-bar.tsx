@@ -135,7 +135,6 @@ export function ReactionBar({ pageId, occasion = "custom" }: { pageId: string; o
       <h3 className="font-bold text-lg text-center mb-1 text-slate-700">ส่งความรู้สึกกลับ 💭</h3>
       <p className="text-center text-sm text-slate-400 mb-6">เลือกอีโมจิหรือข้อความที่ตรงกับความรู้สึกของคุณ</p>
       
-      {/* Emoji Reactions */}
       <div className="flex justify-center gap-2 md:gap-3 mb-5 flex-wrap">
         {config.emojis.map(emoji => (
           <motion.button
@@ -157,7 +156,6 @@ export function ReactionBar({ pageId, occasion = "custom" }: { pageId: string; o
         ))}
       </div>
 
-      {/* Quick Text Buttons */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-5">
         {config.quickTexts.map((text, i) => (
           <motion.button
@@ -176,7 +174,6 @@ export function ReactionBar({ pageId, occasion = "custom" }: { pageId: string; o
         ))}
       </div>
 
-      {/* Custom Message */}
       <div className="space-y-3">
         <div className="flex items-center gap-2 text-slate-400 text-sm mb-1">
           <MessageCircle className="w-4 h-4" />
@@ -198,11 +195,6 @@ export function ReactionBar({ pageId, occasion = "custom" }: { pageId: string; o
           ส่งข้อความตอบกลับ
         </Button>
       </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      )}
     </motion.div>
   );
 }
