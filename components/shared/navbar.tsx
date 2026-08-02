@@ -1,70 +1,65 @@
 "use client";
 
 import Link from "next/link";
-import { useSession, signOut } from "next-auth/react";
+import { Sparkles, LayoutDashboard, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { LogOut, User, LayoutDashboard, Sparkles } from "lucide-react";
 
-export function Navbar() {
-  const { data: session, status } = useSession();
-  const isLoading = status === "loading";
+interface NavbarProps {
+  user?: {
+    name?: string | null;
+    image?: string | null;
+  };
+  onSignOut?: () => void;
+}
 
+export default function Navbar({ user, onSignOut }: NavbarProps) {
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-rose-100 px-4 md:px-6 py-3">
-      <div className="max-w-6xl mx-auto flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-rose-400 to-pink-500 rounded-lg flex items-center justify-center text-white font-bold shadow-lg">
+    <header className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-md border-b border-pink-100/60 shadow-sm transition-all">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+        {/* Brand Logo */}
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-pink-500 to-rose-400 flex items-center justify-center text-white font-black text-lg shadow-md shadow-pink-200 group-hover:scale-105 transition-transform">
             S
           </div>
-          <span className="font-bold text-xl bg-gradient-to-r from-rose-500 to-purple-600 bg-clip-text text-transparent">
+          <span className="font-extrabold text-xl bg-gradient-to-r from-pink-600 via-rose-500 to-pink-500 bg-clip-text text-transparent tracking-tight">
             SurpriseMe
           </span>
         </Link>
 
+        {/* Navigation Actions */}
         <div className="flex items-center gap-3">
-          {isLoading ? (
-            <div className="w-8 h-8 rounded-full bg-slate-100 animate-pulse" />
-          ) : session?.user ? (
-            <>
-              <Link href="/dashboard">
-                <Button variant="ghost" size="sm" className="hidden md:flex text-slate-600 hover:bg-rose-50">
-                  <LayoutDashboard className="w-4 h-4 mr-2" />
-                  Dashboard
-                </Button>
-              </Link>
-              <Link href="/editor">
-                <Button size="sm" className="bg-gradient-to-r from-rose-400 to-pink-500 text-white rounded-full shadow-md hover:shadow-lg">
-                  <Sparkles className="w-4 h-4 mr-1" />
-                  สร้างใหม่
-                </Button>
-              </Link>
-              <div className="flex items-center gap-2 ml-2">
-                {session.user.image ? (
-                  <img src={session.user.image} alt="" className="w-8 h-8 rounded-full border-2 border-rose-100" />
+          <Link href="/dashboard">
+            <Button variant="ghost" size="sm" className="rounded-xl text-gray-600 hover:text-pink-600 hover:bg-pink-50 font-medium gap-2">
+              <LayoutDashboard className="w-4 h-4" />
+              <span className="hidden sm:inline">Dashboard</span>
+            </Button>
+          </Link>
+
+          <Link href="/editor">
+            <Button size="sm" className="rounded-xl bg-gradient-to-r from-pink-500 to-rose-400 hover:opacity-90 text-white font-medium shadow-md shadow-pink-200 gap-1.5 px-4 h-9">
+              <Sparkles className="w-4 h-4 animate-pulse" />
+              <span>สร้างใหม่</span>
+            </Button>
+          </Link>
+
+          {user && (
+            <div className="flex items-center gap-2 pl-2 border-l border-pink-100">
+              <div className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-pink-200 bg-pink-100 flex items-center justify-center text-xs font-bold text-pink-600">
+                {user.image ? (
+                  <img src={user.image} alt={user.name || "User"} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-200 to-orange-300 border-2 border-white shadow-sm flex items-center justify-center">
-                    <User className="w-4 h-4 text-white" />
-                  </div>
+                  user.name?.[0] || "U"
                 )}
-                <Button variant="ghost" size="sm" onClick={() => signOut({ callbackUrl: "/" })} className="text-slate-400 hover:text-red-500">
+              </div>
+              {onSignOut && (
+                <Button variant="ghost" size="icon" onClick={onSignOut} className="w-8 h-8 rounded-xl text-gray-400 hover:text-rose-500 hover:bg-rose-50">
                   <LogOut className="w-4 h-4" />
                 </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              <Link href="/login">
-                <Button variant="ghost" size="sm" className="text-slate-600 hover:bg-rose-50">เข้าสู่ระบบ</Button>
-              </Link>
-              <Link href="/register">
-                <Button size="sm" className="bg-gradient-to-r from-rose-400 to-pink-500 text-white rounded-full shadow-md hover:shadow-lg">
-                  สมัครสมาชิก
-                </Button>
-              </Link>
-            </>
+              )}
+            </div>
           )}
         </div>
       </div>
-    </nav>
+    </header>
   );
 }

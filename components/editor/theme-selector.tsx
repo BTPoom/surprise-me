@@ -1,64 +1,56 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { EditorData } from "@/app/(dashboard)/editor/page";
 import { Check } from "lucide-react";
 
-const themes = [
-  { id: "rose", name: "Rose Garden", desc: "โรแมนติก อบอุ่น", gradient: "from-rose-200 to-pink-300", text: "text-rose-600", bg: "bg-rose-50", border: "border-rose-400", ring: "ring-rose-300" },
-  { id: "midnight", name: "Midnight Dream", desc: "ลึกลับ หรูหรา", gradient: "from-purple-200 to-indigo-300", text: "text-purple-600", bg: "bg-purple-50", border: "border-purple-400", ring: "ring-purple-300" },
-  { id: "golden", name: "Golden Hour", desc: "สดใส อบอุ่น", gradient: "from-amber-200 to-orange-300", text: "text-amber-600", bg: "bg-amber-50", border: "border-amber-400", ring: "ring-amber-300" },
-  { id: "ocean", name: "Ocean Breeze", desc: "สดชื่น ผ่อนคลาย", gradient: "from-cyan-200 to-blue-300", text: "text-cyan-600", bg: "bg-cyan-50", border: "border-cyan-400", ring: "ring-cyan-300" },
-  { id: "forest", name: "Forest Whisper", desc: "ธรรมชาติ สงบ", gradient: "from-emerald-200 to-green-300", text: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-400", ring: "ring-emerald-300" },
-  { id: "sakura", name: "Sakura Dream", desc: "หวาน ละมุน", gradient: "from-pink-200 to-rose-300", text: "text-pink-600", bg: "bg-pink-50", border: "border-pink-400", ring: "ring-pink-300" },
+interface ThemeOption {
+  id: string;
+  name: string;
+  bgGradient: string;
+  cardBg: string;
+  accentColor: string;
+}
+
+const THEMES: ThemeOption[] = [
+  { id: "pink", name: "หวานละมุน", bgGradient: "from-pink-100 via-rose-50 to-pink-50", cardBg: "bg-white/90", accentColor: "border-pink-300" },
+  { id: "purple", name: "ฝันหวาน", bgGradient: "from-purple-100 via-pink-50 to-purple-50", cardBg: "bg-white/90", accentColor: "border-purple-300" },
+  { id: "peach", name: "อบอุ่น", bgGradient: "from-orange-100 via-amber-50 to-rose-50", cardBg: "bg-white/90", accentColor: "border-amber-300" },
+  { id: "dark", name: "โรแมนติกกลางคืน", bgGradient: "from-slate-900 via-purple-950 to-slate-900", cardBg: "bg-slate-800/90", accentColor: "border-purple-500" },
 ];
 
-export function ThemeSelector({ data, onChange }: { data: EditorData; onChange: (d: Partial<EditorData>) => void }) {
-  const currentTheme = data.theme || "rose";
+interface ThemeSelectorProps {
+  selectedTheme: string;
+  onChangeTheme: (themeId: string) => void;
+}
 
+export default function ThemeSelector({ selectedTheme, onChangeTheme }: ThemeSelectorProps) {
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-2">เลือกธีม 🎨</h2>
-      <p className="text-slate-500 mb-6">เลือกธีมที่ตรงกับอารมณ์และโอกาส</p>
-      
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {themes.map((theme, i) => {
-          const isSelected = currentTheme === theme.id;
+    <div className="space-y-3">
+      <label className="text-sm font-semibold text-gray-700 block">เลือกธีมความรู้สึก</label>
+      <div className="grid grid-cols-2 gap-3">
+        {THEMES.map((theme) => {
+          const isSelected = selectedTheme === theme.id;
           return (
-            <motion.button
+            <button
               key={theme.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              onClick={() => onChange({ theme: theme.id })}
-              className={`relative p-4 rounded-xl border-2 text-center transition-all hover:shadow-lg ${
+              type="button"
+              onClick={() => onChangeTheme(theme.id)}
+              className={`relative p-3.5 rounded-2xl border-2 text-left transition-all duration-200 flex items-center justify-between bg-gradient-to-br ${theme.bgGradient} ${
                 isSelected
-                  ? `${theme.border} ${theme.bg} shadow-lg ring-2 ${theme.ring} scale-[1.02]`
-                  : "border-slate-200 bg-white hover:border-slate-300 hover:scale-[1.01]"
+                  ? "border-pink-500 shadow-md ring-2 ring-pink-200 scale-[1.02]"
+                  : "border-transparent hover:border-pink-200 opacity-80 hover:opacity-100"
               }`}
             >
+              <span className={`text-xs font-bold ${theme.id === "dark" ? "text-white" : "text-gray-800"}`}>
+                {theme.name}
+              </span>
               {isSelected && (
-                <div className={`absolute top-2 right-2 w-6 h-6 rounded-full ${theme.text} bg-white flex items-center justify-center shadow-sm`}>
-                  <Check className="w-4 h-4" />
+                <div className="w-5 h-5 rounded-full bg-pink-500 text-white flex items-center justify-center">
+                  <Check className="w-3 h-3 stroke-[3]" />
                 </div>
               )}
-              <div className={`h-20 rounded-lg bg-gradient-to-br ${theme.gradient} mb-3 shadow-inner`} />
-              <div className={`font-bold ${isSelected ? theme.text : "text-slate-800"}`}>{theme.name}</div>
-              <div className="text-xs text-slate-500 mt-1">{theme.desc}</div>
-            </motion.button>
+            </button>
           );
         })}
-      </div>
-
-      {/* Preview */}
-      <div className="mt-8 p-6 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50">
-        <h3 className="text-sm font-medium text-slate-500 mb-3 text-center">ตัวอย่างธีมที่เลือก</h3>
-        <div className={`p-6 rounded-xl bg-gradient-to-br ${themes.find(t => t.id === currentTheme)?.gradient || "from-rose-200 to-pink-300"} flex items-center justify-center h-32`}>
-          <span className="text-4xl drop-shadow-lg">💌</span>
-        </div>
-        <p className="text-center text-sm text-slate-500 mt-2 font-medium">
-          {themes.find(t => t.id === currentTheme)?.name}
-        </p>
       </div>
     </div>
   );
