@@ -14,6 +14,7 @@ const QUICK_TEXTS = [
 ];
 
 interface ReactionBarProps {
+  occasion?: string;
   pageId?: string;
   onSendReaction?: (data: { emoji?: string; message?: string }) => void;
 }
