@@ -9,7 +9,7 @@ interface LetterContentProps {
   icon?: string;
 }
 
-export default function LetterContent({
+export function LetterContent({
   title = "ขอบคุณนะ",
   message = "ขอบคุณสำหรับกำลังใจและมิตรภาพดีๆ เสมอนะครับ",
   senderName = "poom",
