@@ -7,17 +7,21 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { 
   Cake, Heart, MessageCircle, HandHeart, Sun, 
-  Moon, Gift, GraduationCap, Sparkles, Star 
+  Moon, Gift, GraduationCap, Sparkles 
 } from "lucide-react";
 
-export interface OccasionConfig {
-  occasion: string;
-  theme: string;
-  animationSet: string;
-  envelopeStyle: string;
-  sections: string[];
-  questions: string[];
-  endingEffect: string;
+interface Props {
+  data: {
+    occasion?: string;
+    theme?: string;
+    animationSet?: string;
+    envelopeStyle?: string;
+    musicStyle?: string;
+    sections?: string[];
+    questions?: string[];
+    endingEffect?: string;
+  };
+  onChange: (partial: Partial<any>) => void;
 }
 
 const occasions = [
@@ -122,23 +126,24 @@ const allSections = [
   { id: "text-reply", label: "ตอบกลับข้อความ", default: true },
 ];
 
-interface Props {
-  value: OccasionConfig;
-  onChange: (config: OccasionConfig) => void;
-}
-
-export function OccasionPicker({ value, onChange }: Props) {
+export function OccasionPicker({ data, onChange }: Props) {
   const [step, setStep] = useState<"occasion" | "theme" | "sections">("occasion");
-  const availableThemes = themes[value.occasion] || themes.custom;
 
-  const update = (patch: Partial<OccasionConfig>) => {
-    onChange({ ...value, ...patch });
+  const currentOccasion = data.occasion || "custom";
+  const currentTheme = data.theme || "rose";
+  const currentAnimation = data.animationSet || "hearts";
+  const currentSections = data.sections || allSections.filter((s) => s.default).map((s) => s.id);
+
+  const availableThemes = themes[currentOccasion] || themes.custom;
+
+  const update = (patch: Partial<any>) => {
+    onChange(patch);
   };
 
   const toggleSection = (sectionId: string) => {
-    const next = value.sections.includes(sectionId)
-      ? value.sections.filter((s) => s !== sectionId)
-      : [...value.sections, sectionId];
+    const next = currentSections.includes(sectionId)
+      ? currentSections.filter((s) => s !== sectionId)
+      : [...currentSections, sectionId];
     update({ sections: next });
   };
 
@@ -161,7 +166,7 @@ export function OccasionPicker({ value, onChange }: Props) {
                 setStep("theme");
               }}
               className={`p-4 rounded-2xl border-2 text-left transition-all ${
-                value.occasion === o.id
+                currentOccasion === o.id
                   ? "border-rose-400 bg-rose-50 shadow-md"
                   : "border-transparent bg-white hover:border-rose-200 shadow-sm"
               }`}
@@ -196,7 +201,7 @@ export function OccasionPicker({ value, onChange }: Props) {
               whileTap={{ scale: 0.97 }}
               onClick={() => update({ theme: t.id })}
               className={`p-4 rounded-2xl border-2 text-center transition-all ${
-                value.theme === t.id
+                currentTheme === t.id
                   ? "border-rose-400 bg-rose-50 shadow-md"
                   : "border-transparent bg-white hover:border-rose-200 shadow-sm"
               }`}
@@ -214,7 +219,7 @@ export function OccasionPicker({ value, onChange }: Props) {
                 key={a.id}
                 onClick={() => update({ animationSet: a.id })}
                 className={`px-3 py-1.5 rounded-full text-sm border transition-all ${
-                  value.animationSet === a.id
+                  currentAnimation === a.id
                     ? "bg-rose-500 text-white border-rose-500 shadow-sm"
                     : "bg-white text-slate-600 border-rose-100 hover:border-rose-300"
                 }`}
@@ -248,7 +253,7 @@ export function OccasionPicker({ value, onChange }: Props) {
           <div
             key={s.id}
             className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
-              value.sections.includes(s.id)
+              currentSections.includes(s.id)
                 ? "border-rose-300 bg-rose-50"
                 : "border-slate-100 bg-white"
             }`}
@@ -258,7 +263,7 @@ export function OccasionPicker({ value, onChange }: Props) {
             </Label>
             <Switch
               id={s.id}
-              checked={value.sections.includes(s.id)}
+              checked={currentSections.includes(s.id)}
               onCheckedChange={() => toggleSection(s.id)}
             />
           </div>
