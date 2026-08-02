@@ -119,22 +119,7 @@ export function ReceiverView({ page }: { page: PageData }) {
               animate="visible"
               className="max-w-xl mx-auto"
             >
-              <div className="relative bg-white/65 backdrop-blur-2xl rounded-[2rem] shadow-[0_8px_50px_-12px_rgba(255,100,130,0.2)] border border-white/60 overflow-hidden">
-                <div className="h-1.5 w-full bg-gradient-to-r from-rose-300 via-pink-400 to-amber-300" />
-                <div className="p-8 md:p-10">
-                  <LetterContent page={page} />
-                </div>
-                <motion.span
-                  animate={{ y: [0, -5, 0], opacity: [0.3, 0.6, 0.3] }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                  className="absolute bottom-3 left-4 text-rose-300 text-xs"
-                >🩷</motion.span>
-                <motion.span
-                  animate={{ y: [0, -6, 0], opacity: [0.2, 0.5, 0.2] }}
-                  transition={{ duration: 4, repeat: Infinity, delay: 1 }}
-                  className="absolute top-5 right-5 text-pink-300 text-[10px]"
-                >✨</motion.span>
-              </div>
+              <LetterContent page={page} />
             </motion.div>
 
             {hasGallery && (
