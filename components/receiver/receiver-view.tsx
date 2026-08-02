@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import SurpriseBackground from "./background-effects";
 import { OccasionIntro } from "./occasion-intro";
 import { EnvelopeAnimation } from "./envelope-animation";
 import { LetterContent } from "./letter-content";
@@ -57,8 +56,7 @@ export function ReceiverView({ page }: { page: PageData }) {
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-gradient-to-br from-rose-50 via-pink-50 to-amber-50">
-      <SurpriseBackground effect="mixed" intensity="medium" />
-
+      {/* Soft ambient orbs only — no overlapping colored boxes */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <motion.div
           animate={{ x: [0, 40, 0], y: [0, -30, 0] }}
