@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { z } from "zod";
@@ -36,10 +37,24 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const pageId = searchParams.get("pageId");
     if (!pageId) {
       return NextResponse.json({ error: "ต้องระบุ pageId" }, { status: 400 });
+    }
+
+    // ตรวจสอบว่า pageId นี้เป็นของผู้ใช้ที่ login อยู่จริง ป้องกันการดูข้อความตอบกลับของหน้าคนอื่น
+    const page = await prisma.page.findUnique({
+      where: { id: pageId },
+      select: { ownerId: true },
+    });
+    if (!page || page.ownerId !== session.user.id) {
+      return NextResponse.json({ error: "ไม่พบหน้านี้" }, { status: 404 });
     }
 
     const reactions = await prisma.reaction.findMany({
