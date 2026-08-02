@@ -13,6 +13,7 @@ interface Photo {
   id: string;
   url: string;
   caption?: string | null;
+  order: number;
 }
 
 interface PageData {
