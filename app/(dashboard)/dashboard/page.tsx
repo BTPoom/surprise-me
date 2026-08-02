@@ -5,7 +5,8 @@ import { PageList } from "@/components/dashboard/page-list";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Heart } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -16,12 +17,27 @@ export default async function DashboardPage() {
     orderBy: { updatedAt: "desc" },
     include: {
       _count: { select: { reactions: true, analytics: true } },
+      reactions: {
+        orderBy: { createdAt: "desc" },
+        take: 3,
+      },
     },
   });
 
+  const allReactions = pages
+    .flatMap((page) =>
+      page.reactions.map((r) => ({
+        ...r,
+        pageSlug: page.slug,
+        pageTitle: page.title,
+      }))
+    )
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 10);
+
   const stats = {
     total: pages.length,
-    published: pages.filter(p => p.status === "published").length,
+    published: pages.filter((p) => p.status === "published").length,
     opens: pages.reduce((sum, p) => sum + p._count.analytics, 0),
     reactions: pages.reduce((sum, p) => sum + p._count.reactions, 0),
   };
@@ -43,11 +59,51 @@ export default async function DashboardPage() {
 
       <StatsCards stats={stats} />
 
+      {allReactions.length > 0 && (
+        <div className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-2xl border border-rose-100 p-6">
+          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4">
+            <Heart className="w-5 h-5 text-rose-500 fill-rose-500" />
+            ข้อความตอบกลับล่าสุด 💬
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {allReactions.map((r) => (
+              <div
+                key={r.id}
+                className="bg-white rounded-xl p-4 shadow-sm border border-rose-100 flex items-start gap-3"
+              >
+                <span className="text-2xl">{r.emoji}</span>
+                <div className="flex-1 min-w-0">
+                  {r.message && (
+                    <p className="text-sm text-slate-700 mb-1">"{r.message}"</p>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-slate-400">
+                      {formatDate(r.createdAt)}
+                    </span>
+                    <Link
+                      href={`/s/${r.pageSlug}`}
+                      target="_blank"
+                      className="text-xs text-rose-500 hover:text-rose-600 font-medium"
+                    >
+                      {r.pageTitle}
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl border border-rose-100 shadow-sm p-6">
         <div className="flex gap-3 mb-6">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input type="text" placeholder="ค้นหาหน้าเซอร์ไพรส์..." className="w-full pl-10 pr-4 py-2 rounded-xl border border-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-300" />
+            <input
+              type="text"
+              placeholder="ค้นหาหน้าเซอร์ไพรส์..."
+              className="w-full pl-10 pr-4 py-2 rounded-xl border border-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-300"
+            />
           </div>
           <select className="px-4 py-2 rounded-xl border border-rose-100 bg-white focus:outline-none focus:ring-2 focus:ring-rose-300">
             <option value="all">ทั้งหมด</option>

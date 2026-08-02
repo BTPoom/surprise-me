@@ -62,7 +62,6 @@ export function PageList({ pages }: { pages: PageItem[] }) {
               {formatDate(page.createdAt)} • เปิดซอง {page._count.analytics} ครั้ง
             </p>
             
-            {/* ข้อความตอบกลับล่าสุด */}
             {page.reactions && page.reactions.length > 0 && (
               <div className="mt-3 space-y-2">
                 <div className="flex items-center gap-1 text-xs font-medium text-rose-500">
