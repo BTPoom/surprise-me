@@ -55,24 +55,9 @@ export function ReceiverView({ page }: { page: PageData }) {
   const hasReaction = sections.includes("reaction") || sections.includes("text-reply");
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-gradient-to-br from-rose-50 via-pink-50 to-amber-50">
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <motion.div
-          animate={{ x: [0, 40, 0], y: [0, -30, 0] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-40 -right-40 w-[26rem] h-[26rem] bg-rose-200/25 rounded-full blur-[100px]"
-        />
-        <motion.div
-          animate={{ x: [0, -30, 0], y: [0, 40, 0] }}
-          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -bottom-40 -left-40 w-[26rem] h-[26rem] bg-pink-200/20 rounded-full blur-[100px]"
-        />
-        <motion.div
-          animate={{ x: [0, 20, 0], y: [0, -20, 0] }}
-          transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/3 left-1/3 w-64 h-64 bg-amber-100/15 rounded-full blur-[80px]"
-        />
-      </div>
+    <div className="relative min-h-screen overflow-x-hidden bg-gradient-to-br from-rose-100 via-pink-50 to-amber-50">
+      {/* Background Animation */}
+      <BackgroundAnimation />
 
       {phase === "intro" && (
         <OccasionIntro
@@ -192,6 +177,45 @@ export function ReceiverView({ page }: { page: PageData }) {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+/* ---------- Background Animation (CSS only, no emojis) ---------- */
+function BackgroundAnimation() {
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+      {/* Aurora gradient layer */}
+      <div
+        className="absolute inset-0 opacity-40"
+        style={{
+          background: "linear-gradient(-45deg, #ff9a9e, #fecfef, #fad0c4, #ffd1ff, #ffecd2, #fcb69f)",
+          backgroundSize: "400% 400%",
+          animation: "auroraFlow 15s ease infinite",
+        }}
+      />
+
+      {/* Soft floating orbs */}
+      <motion.div
+        animate={{ x: [0, 60, 0], y: [0, -40, 0], scale: [1, 1.2, 1] }}
+        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -top-20 -right-20 w-[30rem] h-[30rem] bg-rose-300/20 rounded-full blur-[120px]"
+      />
+      <motion.div
+        animate={{ x: [0, -50, 0], y: [0, 60, 0], scale: [1, 1.3, 1] }}
+        transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -bottom-20 -left-20 w-[30rem] h-[30rem] bg-pink-300/15 rounded-full blur-[120px]"
+      />
+      <motion.div
+        animate={{ x: [0, 30, 0], y: [0, -30, 0], scale: [1, 1.1, 1] }}
+        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute top-1/2 left-1/2 w-96 h-96 bg-amber-200/10 rounded-full blur-[100px]"
+      />
+      <motion.div
+        animate={{ x: [0, -40, 0], y: [0, 20, 0], scale: [1, 1.25, 1] }}
+        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute top-1/4 right-1/4 w-80 h-80 bg-rose-200/10 rounded-full blur-[90px]"
+      />
     </div>
   );
 }
