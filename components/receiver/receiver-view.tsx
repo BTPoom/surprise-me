@@ -38,7 +38,6 @@ interface PageData {
 
 export function ReceiverView({ page }: { page: PageData }) {
   const [phase, setPhase] = useState<"intro" | "envelope" | "content">("intro");
-  const [showReaction, setShowReaction] = useState(false);
 
   const sections = Array.isArray(page.sections) ? page.sections : [];
   const hasMusic = sections.includes("music") && page.youtubeId;
@@ -81,12 +80,7 @@ export function ReceiverView({ page }: { page: PageData }) {
             transition={{ duration: 0.8 }}
             className="pb-20"
           >
-            <LetterContent
-              title={page.title}
-              message={page.message}
-              senderName={page.senderName}
-              theme={page.theme}
-            />
+            <LetterContent page={page} />
 
             {hasGallery && (
               <motion.div
