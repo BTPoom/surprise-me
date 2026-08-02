@@ -38,32 +38,13 @@ interface PageData {
   photos: Photo[];
 }
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.12, delayChildren: 0.2 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 30, scale: 0.95 },
-  visible: {
+const fadeInUp = {
+  hidden: { opacity: 0, y: 24 },
+  visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    scale: 1,
-    transition: { type: "spring", stiffness: 100, damping: 15 },
-  },
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 40, scale: 0.92 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { type: "spring", stiffness: 80, damping: 12, delay: 0.1 },
-  },
+    transition: { delay: i * 0.1, duration: 0.5, ease: "easeOut" },
+  }),
 };
 
 export function ReceiverView({ page }: { page: PageData }) {
@@ -78,7 +59,23 @@ export function ReceiverView({ page }: { page: PageData }) {
     <div className="relative min-h-screen overflow-x-hidden bg-gradient-to-br from-rose-50 via-pink-50 to-amber-50">
       <SurpriseBackground effect="mixed" intensity="medium" />
 
-      <AnimatedBackground occasion={page.occasion} animationSet={page.animationSet} />
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <motion.div
+          animate={{ x: [0, 40, 0], y: [0, -30, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-40 -right-40 w-[26rem] h-[26rem] bg-rose-200/25 rounded-full blur-[100px]"
+        />
+        <motion.div
+          animate={{ x: [0, -30, 0], y: [0, 40, 0] }}
+          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -bottom-40 -left-40 w-[26rem] h-[26rem] bg-pink-200/20 rounded-full blur-[100px]"
+        />
+        <motion.div
+          animate={{ x: [0, 20, 0], y: [0, -20, 0] }}
+          transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/3 left-1/3 w-64 h-64 bg-amber-100/15 rounded-full blur-[80px]"
+        />
+      </div>
 
       {phase === "intro" && (
         <OccasionIntro
@@ -92,64 +89,87 @@ export function ReceiverView({ page }: { page: PageData }) {
         {phase === "envelope" && (
           <motion.div
             key="envelope"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.5 } }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.4 } }}
             className="min-h-screen flex items-center justify-center p-4 relative z-10"
           >
-            <motion.div variants={itemVariants}>
-              <EnvelopeAnimation
-                style={page.envelopeStyle}
-                theme={page.theme}
-                senderName={page.senderName}
-                onOpen={() => setPhase("content")}
-              />
-            </motion.div>
+            <EnvelopeAnimation
+              style={page.envelopeStyle}
+              theme={page.theme}
+              senderName={page.senderName}
+              onOpen={() => setPhase("content")}
+            />
           </motion.div>
         )}
 
         {phase === "content" && (
           <motion.div
             key="content"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            exit={{ opacity: 0, transition: { duration: 0.4 } }}
-            className="relative z-10 pb-24 pt-8 px-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="relative z-10 pb-24 pt-10 px-4"
           >
-            <motion.div variants={cardVariants} className="max-w-xl mx-auto">
-              <div className="relative bg-white/70 backdrop-blur-xl rounded-3xl shadow-[0_8px_40px_-12px_rgba(255,100,130,0.25)] border border-white/50 overflow-hidden">
-                <div className="h-1.5 w-full bg-gradient-to-r from-rose-300 via-pink-400 to-rose-300" />
+            <motion.div
+              custom={0}
+              variants={fadeInUp}
+              initial="hidden"
+              animate="visible"
+              className="max-w-xl mx-auto"
+            >
+              <div className="relative bg-white/65 backdrop-blur-2xl rounded-[2rem] shadow-[0_8px_50px_-12px_rgba(255,100,130,0.2)] border border-white/60 overflow-hidden">
+                <div className="h-1.5 w-full bg-gradient-to-r from-rose-300 via-pink-400 to-amber-300" />
                 <div className="p-8 md:p-10">
                   <LetterContent page={page} />
                 </div>
                 <motion.span
-                  animate={{ y: [0, -6, 0], opacity: [0.4, 0.8, 0.4] }}
+                  animate={{ y: [0, -5, 0], opacity: [0.3, 0.6, 0.3] }}
                   transition={{ duration: 3, repeat: Infinity }}
-                  className="absolute bottom-4 left-4 text-rose-300 text-sm"
+                  className="absolute bottom-3 left-4 text-rose-300 text-xs"
                 >🩷</motion.span>
                 <motion.span
-                  animate={{ y: [0, -8, 0], opacity: [0.3, 0.7, 0.3] }}
+                  animate={{ y: [0, -6, 0], opacity: [0.2, 0.5, 0.2] }}
                   transition={{ duration: 4, repeat: Infinity, delay: 1 }}
-                  className="absolute top-6 right-6 text-pink-300 text-xs"
+                  className="absolute top-5 right-5 text-pink-300 text-[10px]"
                 >✨</motion.span>
               </div>
             </motion.div>
 
             {hasGallery && (
-              <motion.div variants={itemVariants} className="max-w-3xl mx-auto mt-12">
-                <SectionTitle icon="📸" title="ความทรงจำดี ๆ" />
-                <div className="bg-white/60 backdrop-blur-md rounded-2xl shadow-lg border border-white/40 p-6">
+              <motion.div
+                custom={1}
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+                className="max-w-3xl mx-auto mt-12"
+              >
+                <div className="flex items-center gap-2 mb-4 px-1">
+                  <span className="text-lg">📸</span>
+                  <h3 className="text-base font-semibold text-slate-600">ความทรงจำดี ๆ</h3>
+                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
+                </div>
+                <div className="bg-white/50 backdrop-blur-xl rounded-2xl shadow-lg border border-white/50 p-5">
                   <PolaroidGallery photos={page.photos} />
                 </div>
               </motion.div>
             )}
 
             {hasMusic && (
-              <motion.div variants={itemVariants} className="max-w-md mx-auto mt-12">
-                <SectionTitle icon="🎵" title="เพลงประกอบ" />
-                <div className="bg-white/60 backdrop-blur-md rounded-2xl shadow-lg border border-white/40 p-6">
+              <motion.div
+                custom={2}
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+                className="max-w-md mx-auto mt-12"
+              >
+                <div className="flex items-center gap-2 mb-4 px-1">
+                  <span className="text-lg">🎵</span>
+                  <h3 className="text-base font-semibold text-slate-600">เพลงประกอบ</h3>
+                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
+                </div>
+                <div className="bg-white/50 backdrop-blur-xl rounded-2xl shadow-lg border border-white/50 p-5">
                   <MusicPlayer
                     youtubeId={page.youtubeId!}
                     startAt={page.youtubeStartAt || 0}
@@ -160,13 +180,19 @@ export function ReceiverView({ page }: { page: PageData }) {
             )}
 
             {hasReaction && (
-              <motion.div variants={itemVariants} className="max-w-lg mx-auto mt-14">
-                <div className="flex items-center gap-3 mb-5 px-1">
-                  <span className="text-2xl">💌</span>
-                  <h3 className="text-lg font-bold text-slate-700">ส่งความรู้สึกกลับ</h3>
-                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200 to-transparent" />
+              <motion.div
+                custom={3}
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+                className="max-w-lg mx-auto mt-14"
+              >
+                <div className="flex items-center gap-2 mb-4 px-1">
+                  <span className="text-lg">💌</span>
+                  <h3 className="text-base font-semibold text-slate-600">ส่งความรู้สึกกลับ</h3>
+                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
                 </div>
-                <div className="bg-white/60 backdrop-blur-md rounded-2xl shadow-lg border border-white/40 p-6">
+                <div className="bg-white/50 backdrop-blur-xl rounded-2xl shadow-lg border border-white/50 p-5">
                   <ReactionBar pageId={page.id} occasion={page.occasion} />
                 </div>
               </motion.div>
@@ -174,80 +200,19 @@ export function ReceiverView({ page }: { page: PageData }) {
 
             {page.endingEffect !== "none" && <EndingEffect type={page.endingEffect} />}
 
-            <motion.p variants={itemVariants} className="text-center text-xs text-slate-400 mt-16">
+            <motion.p
+              custom={4}
+              variants={fadeInUp}
+              initial="hidden"
+              animate="visible"
+              className="text-center text-[11px] text-slate-400/70 mt-16 tracking-wide"
+            >
               สร้างด้วย 💗 บน SurpriseMe
             </motion.p>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
-  );
-}
-
-function SectionTitle({ icon, title }: { icon: string; title: string }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true }}
-      transition={{ type: "spring", stiffness: 120 }}
-      className="flex items-center gap-2 mb-5 px-1"
-    >
-      <span className="text-xl">{icon}</span>
-      <h3 className="text-lg font-bold text-slate-700">{title}</h3>
-      <div className="flex-1 h-px bg-gradient-to-r from-rose-200 to-transparent ml-2" />
-    </motion.div>
-  );
-}
-
-function AnimatedBackground({ occasion, animationSet }: { occasion: string; animationSet: string }) {
-  if (animationSet === "none") return null;
-
-  return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-      <motion.div
-        animate={{ x: [0, 40, 0], y: [0, -30, 0], scale: [1, 1.1, 1] }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute -top-48 -right-48 w-[28rem] h-[28rem] bg-gradient-to-br from-rose-200/30 to-pink-300/20 rounded-full blur-3xl"
-      />
-      <motion.div
-        animate={{ x: [0, -30, 0], y: [0, 40, 0], scale: [1, 1.15, 1] }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute -bottom-48 -left-48 w-[28rem] h-[28rem] bg-gradient-to-tr from-pink-200/25 to-amber-200/20 rounded-full blur-3xl"
-      />
-      <motion.div
-        animate={{ x: [0, 20, 0], y: [0, -20, 0] }}
-        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-1/3 left-1/4 w-64 h-64 bg-gradient-to-br from-amber-100/20 to-rose-100/20 rounded-full blur-3xl"
-      />
-
-      {animationSet === "hearts" && <FloatingParticles particles={["💖", "💕", "💗", "💓", "💝"]} />}
-      {animationSet === "flowers" && <FloatingParticles particles={["🌸", "🌺", "🌷", "💐", "🌹"]} />}
-      {animationSet === "stars" && <FloatingParticles particles={["⭐", "✨", "🌟", "💫", "✦"]} />}
-      {animationSet === "confetti" && <FloatingParticles particles={["🎉", "🎊", "✨", "🎈", "🎀"]} />}
-      {animationSet === "butterflies" && <FloatingParticles particles={["🦋", "🦋", "✨", "🌸", "💫"]} />}
-      {animationSet === "snow" && <FloatingParticles particles={["❄️", "🌨️", "✨", "💎", "🤍"]} />}
-      {animationSet === "clouds" && <FloatingParticles particles={["☁️", "🌤️", "✨", "💭", "🌸"]} />}
-      {animationSet === "fireflies" && <FloatingParticles particles={["✨", "💫", "⭐", "🌟", "✦"]} />}
-    </div>
-  );
-}
-
-function FloatingParticles({ particles }: { particles: string[] }) {
-  return (
-    <>
-      {Array.from({ length: 12 }).map((_, i) => (
-        <motion.div
-          key={i}
-          initial={{ y: "110vh", x: `${Math.random() * 100}%`, opacity: 0, scale: 0.5 }}
-          animate={{ y: "-20vh", opacity: [0, 0.5, 0.5, 0], scale: [0.5, 1, 1, 0.5] }}
-          transition={{ duration: 8 + Math.random() * 6, delay: i * 0.8, repeat: Infinity, ease: "easeOut" }}
-          className="absolute text-lg md:text-xl"
-        >
-          {particles[i % particles.length]}
-        </motion.div>
-      ))}
-    </>
   );
 }
 
