@@ -1,23 +1,28 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { generateSlug, extractYoutubeId } from "@/lib/utils";
-import bcrypt from "bcryptjs";
+import { auth } from "@/lib/auth";
 import { z } from "zod";
 
 const pageSchema = z.object({
-  id: z.string().optional(),
-  occasion: z.string().min(1),
   title: z.string().min(1),
   message: z.string().min(1),
   senderName: z.string().min(1),
-  photos: z.array(z.object({ url: z.string(), caption: z.string(), order: z.number() })).default([]),
+  occasion: z.string().default("custom"),
+  theme: z.string().default("rose"),
+  animationSet: z.string().default("hearts"),
+  envelopeStyle: z.string().default("classic"),
+  musicStyle: z.string().default("default"),
+  sections: z.array(z.string()).default([]),
+  questions: z.array(z.string()).default([]),
+  endingEffect: z.string().default("confetti"),
   youtubeUrl: z.string().optional(),
   youtubeId: z.string().optional(),
-  theme: z.string().default("rose"),
+  youtubeStartAt: z.number().optional(),
+  youtubeEndAt: z.number().optional(),
   password: z.string().optional(),
+  scheduledAt: z.string().optional(),
   expiresAt: z.string().optional(),
-  status: z.enum(["draft", "published"]),
+  status: z.string().default("draft"),
 });
 
 export async function POST(req: Request) {
@@ -30,61 +35,46 @@ export async function POST(req: Request) {
     const body = await req.json();
     const parsed = pageSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: "ข้อมูลไม่ครบถ้วน" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid data", details: parsed.error.flatten() }, { status: 400 });
     }
 
     const data = parsed.data;
-    const slug = generateSlug();
-    const youtubeId = data.youtubeUrl ? extractYoutubeId(data.youtubeUrl) : data.youtubeId;
-    const hashedPassword = data.password ? await bcrypt.hash(data.password, 10) : null;
+    const slug = Math.random().toString(36).substring(2, 8) + Math.random().toString(36).substring(2, 8);
 
-    const pageData = {
-      slug,
-      occasion: data.occasion,
-      title: data.title,
-      message: data.message,
-      senderName: data.senderName,
-      theme: data.theme,
-      youtubeUrl: data.youtubeUrl,
-      youtubeId,
-      password: hashedPassword,
-      expiresAt: data.expiresAt ? new Date(data.expiresAt) : null,
-      status: data.status,
-      ownerId: session.user.id,
-    };
+    const page = await prisma.page.create({
+      data: {
+        slug,
+        title: data.title,
+        message: data.message,
+        senderName: data.senderName,
+        occasion: data.occasion,
+        theme: data.theme,
+        animationSet: data.animationSet,
+        envelopeStyle: data.envelopeStyle,
+        musicStyle: data.musicStyle,
+        sections: data.sections,
+        questions: data.questions,
+        endingEffect: data.endingEffect,
+        youtubeUrl: data.youtubeUrl || null,
+        youtubeId: data.youtubeId || null,
+        youtubeStartAt: data.youtubeStartAt || 0,
+        youtubeEndAt: data.youtubeEndAt || null,
+        password: data.password || null,
+        scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : null,
+        expiresAt: data.expiresAt ? new Date(data.expiresAt) : null,
+        status: data.status,
+        ownerId: session.user.id,
+      },
+    });
 
-    let page;
-    if (data.id) {
-      page = await prisma.page.update({
-        where: { id: data.id, ownerId: session.user.id },
-        data: pageData,
-      });
-      // Update photos
-      await prisma.photo.deleteMany({ where: { pageId: data.id } });
-      if (data.photos.length > 0) {
-        await prisma.photo.createMany({
-          data: data.photos.map(p => ({ ...p, pageId: data.id! })),
-        });
-      }
-    } else {
-      page = await prisma.page.create({
-        data: {
-          ...pageData,
-          photos: {
-            create: data.photos,
-          },
-        },
-      });
-    }
-
-    return NextResponse.json({ success: true, slug: page.slug, id: page.id });
+    return NextResponse.json(page, { status: 201 });
   } catch (error) {
-    console.error("Page create error:", error);
-    return NextResponse.json({ error: "เกิดข้อผิดพลาด" }, { status: 500 });
+    console.error(error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -94,11 +84,14 @@ export async function GET() {
     const pages = await prisma.page.findMany({
       where: { ownerId: session.user.id },
       orderBy: { updatedAt: "desc" },
-      include: { photos: true, _count: { select: { reactions: true, analytics: true } } },
+      include: {
+        _count: { select: { reactions: true, analytics: true } },
+        reactions: { orderBy: { createdAt: "desc" }, take: 3 },
+      },
     });
 
     return NextResponse.json(pages);
   } catch (error) {
-    return NextResponse.json({ error: "เกิดข้อผิดพลาด" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

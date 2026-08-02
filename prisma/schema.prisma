@@ -39,7 +39,7 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   image         String?
-  password      String?   // For credentials provider
+  password      String?
   accounts      Account[]
   sessions      Session[]
   pages         Page[]
@@ -56,28 +56,34 @@ model VerificationToken {
 }
 
 model Page {
-  id          String     @id @default(cuid())
-  slug        String     @unique
-  title       String
-  message     String     @db.Text
-  senderName  String
-  occasion    String     // birthday, anniversary, graduation, custom
-  theme       String     @default("rose")
-  youtubeUrl  String?
-  youtubeId     String?
+  id             String     @id @default(cuid())
+  slug           String     @unique
+  title          String
+  message        String     @db.Text
+  senderName     String
+  occasion       String     @default("custom")
+  theme          String     @default("rose")
+  animationSet   String     @default("hearts")
+  envelopeStyle  String     @default("classic")
+  musicStyle     String     @default("default")
+  sections       Json       @default("[]")
+  questions      Json       @default("[]")
+  endingEffect   String     @default("confetti")
+  youtubeUrl     String?
+  youtubeId      String?
   youtubeStartAt Int?       @default(0)
   youtubeEndAt   Int?
-  password    String?    // bcrypt hashed
-  scheduledAt DateTime?
-  expiresAt   DateTime?
-  status      String     @default("draft") // draft | published | expired
-  photos      Photo[]
-  reactions   Reaction[]
-  analytics   Analytics[]
-  owner       User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId     String
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  password       String?
+  scheduledAt    DateTime?
+  expiresAt      DateTime?
+  status         String     @default("draft")
+  photos         Photo[]
+  reactions      Reaction[]
+  analytics      Analytics[]
+  owner          User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId        String
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 
   @@index([slug])
   @@index([ownerId])
@@ -102,7 +108,6 @@ model Reaction {
   page      Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
   pageId    String
 
-  // Privacy-first: no IP, no fingerprint, no userId
   @@index([pageId])
 }
 
@@ -111,7 +116,6 @@ model Analytics {
   page     Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
   pageId   String
   openedAt DateTime @default(now())
-  // Privacy-first: no IP, no userAgent, no fingerprint
 
   @@index([pageId])
   @@index([openedAt])
