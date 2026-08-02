@@ -56,7 +56,6 @@ export function ReceiverView({ page }: { page: PageData }) {
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-gradient-to-br from-rose-50 via-pink-50 to-amber-50">
-      {/* Soft ambient orbs only — no overlapping colored boxes */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <motion.div
           animate={{ x: [0, 40, 0], y: [0, -30, 0] }}
@@ -175,9 +174,7 @@ export function ReceiverView({ page }: { page: PageData }) {
                   <h3 className="text-base font-semibold text-slate-600">ส่งความรู้สึกกลับ</h3>
                   <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
                 </div>
-                <div className="bg-white/50 backdrop-blur-xl rounded-2xl shadow-lg border border-white/50 p-5">
-                  <ReactionBar pageId={page.id} occasion={page.occasion} />
-                </div>
+                <ReactionBar pageId={page.id} occasion={page.occasion} />
               </motion.div>
             )}
 
