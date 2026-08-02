@@ -2,21 +2,20 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { OccasionIntro } from "./occasion-intro";
 import { EnvelopeAnimation } from "./envelope-animation";
 import { LetterContent } from "./letter-content";
-import { PolaroidGallery } from "./polaroid-gallery";
-import { MusicPlayer } from "./music-player";
 import { ReactionBar } from "./reaction-bar";
-import { PasswordGate } from "@/components/shared/password-gate";
+import { MusicPlayer } from "./music-player";
+import { PolaroidGallery } from "./polaroid-gallery";
 
 interface Photo {
   id: string;
   url: string;
-  caption: string | null;
-  order: number;
+  caption?: string;
 }
 
-interface PageWithPhotos {
+interface PageData {
   id: string;
   slug: string;
   title: string;
@@ -24,61 +23,152 @@ interface PageWithPhotos {
   senderName: string;
   occasion: string;
   theme: string;
-  youtubeUrl: string | null;
-  youtubeId: string | null;
-  youtubeStartAt: number | null;
-  youtubeEndAt: number | null;
-  password: string | null;
-  status: string;
+  animationSet: string;
+  envelopeStyle: string;
+  musicStyle: string;
+  sections: any;
+  questions: any;
+  endingEffect: string;
+  youtubeUrl?: string | null;
+  youtubeId?: string | null;
+  youtubeStartAt?: number | null;
+  youtubeEndAt?: number | null;
   photos: Photo[];
 }
 
-export function ReceiverView({ page }: { page: PageWithPhotos }) {
-  const [isOpened, setIsOpened] = useState(false);
-  const [isUnlocked, setIsUnlocked] = useState(!page.password);
+export function ReceiverView({ page }: { page: PageData }) {
+  const [phase, setPhase] = useState<"intro" | "envelope" | "content">("intro");
+  const [showReaction, setShowReaction] = useState(false);
 
-  if (!isUnlocked) {
-    return <PasswordGate onUnlock={() => setIsUnlocked(true)} pageId={page.id} />;
-  }
+  const sections = Array.isArray(page.sections) ? page.sections : [];
+  const hasMusic = sections.includes("music") && page.youtubeId;
+  const hasGallery = sections.includes("gallery") && page.photos.length > 0;
+  const hasReaction = sections.includes("reaction") || sections.includes("text-reply");
 
   return (
-    <AnimatePresence mode="wait">
-      {!isOpened ? (
-        <EnvelopeAnimation
-          key="envelope"
+    <div className="relative min-h-screen">
+      {phase === "intro" && (
+        <OccasionIntro
+          occasion={page.occasion}
           theme={page.theme}
-          senderName={page.senderName}
-          onOpen={() => {
-            setIsOpened(true);
-            fetch("/api/analytics", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ pageId: page.id }),
-            });
-          }}
+          onComplete={() => setPhase("envelope")}
         />
-      ) : (
-        <motion.div
-          key="content"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          className="min-h-screen py-12 px-4"
-        >
-          <div className="max-w-2xl mx-auto space-y-8">
-            <LetterContent page={page} />
-            {page.photos.length > 0 && <PolaroidGallery photos={page.photos} />}
-            {page.youtubeId && (
-              <MusicPlayer
-                youtubeId={page.youtubeId}
-                startAt={page.youtubeStartAt || 0}
-                endAt={page.youtubeEndAt}
-              />
-            )}
-            <ReactionBar pageId={page.id} occasion={page.occasion} />
-          </div>
-        </motion.div>
       )}
-    </AnimatePresence>
+
+      <AnimatePresence mode="wait">
+        {phase === "envelope" && (
+          <motion.div
+            key="envelope"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="min-h-screen flex items-center justify-center p-4"
+          >
+            <EnvelopeAnimation
+              style={page.envelopeStyle}
+              theme={page.theme}
+              senderName={page.senderName}
+              onOpen={() => setPhase("content")}
+            />
+          </motion.div>
+        )}
+
+        {phase === "content" && (
+          <motion.div
+            key="content"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            className="pb-20"
+          >
+            <LetterContent
+              title={page.title}
+              message={page.message}
+              senderName={page.senderName}
+              theme={page.theme}
+            />
+
+            {hasGallery && (
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="max-w-3xl mx-auto px-4 mt-8"
+              >
+                <PolaroidGallery photos={page.photos} />
+              </motion.div>
+            )}
+
+            {hasMusic && (
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="max-w-md mx-auto px-4 mt-8"
+              >
+                <MusicPlayer
+                  videoId={page.youtubeId!}
+                  startAt={page.youtubeStartAt || 0}
+                  endAt={page.youtubeEndAt || undefined}
+                />
+              </motion.div>
+            )}
+
+            {hasReaction && (
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="max-w-lg mx-auto px-4 mt-8"
+              >
+                <ReactionBar pageId={page.id} occasion={page.occasion} />
+              </motion.div>
+            )}
+
+            {page.endingEffect !== "none" && <EndingEffect type={page.endingEffect} />}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
+}
+
+function EndingEffect({ type }: { type: string }) {
+  if (type === "confetti") {
+    return (
+      <div className="fixed inset-0 pointer-events-none z-40 overflow-hidden">
+        {Array.from({ length: 20 }).map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{ y: -20, x: `${Math.random() * 100}%`, opacity: 1 }}
+            animate={{ y: "100vh", rotate: 360 }}
+            transition={{ duration: 3 + Math.random() * 2, delay: Math.random() * 0.5 }}
+            className="absolute text-lg"
+          >
+            {["🎉", "✨", "🎊", "💖", "🌟", "🎈"][i % 6]}
+          </motion.div>
+        ))}
+      </div>
+    );
+  }
+
+  if (type === "hearts") {
+    return (
+      <div className="fixed inset-0 pointer-events-none z-40 overflow-hidden">
+        {Array.from({ length: 15 }).map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{ y: "100vh", x: `${Math.random() * 100}%`, opacity: 0 }}
+            animate={{ y: "-20vh", opacity: [0, 1, 0] }}
+            transition={{ duration: 4, delay: i * 0.2 }}
+            className="absolute text-2xl"
+          >
+            💖
+          </motion.div>
+        ))}
+      </div>
+    );
+  }
+
+  return null;
 }
