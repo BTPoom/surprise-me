@@ -1,29 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { z } from "zod";
-
-const pageSchema = z.object({
-  title: z.string().min(1),
-  message: z.string().min(1),
-  senderName: z.string().min(1),
-  occasion: z.string().default("custom"),
-  theme: z.string().default("rose"),
-  animationSet: z.string().default("hearts"),
-  envelopeStyle: z.string().default("classic"),
-  musicStyle: z.string().default("default"),
-  sections: z.array(z.string()).default([]),
-  questions: z.array(z.string()).default([]),
-  endingEffect: z.string().default("confetti"),
-  youtubeUrl: z.string().optional(),
-  youtubeId: z.string().optional(),
-  youtubeStartAt: z.number().optional(),
-  youtubeEndAt: z.number().optional(),
-  password: z.string().optional(),
-  scheduledAt: z.string().optional(),
-  expiresAt: z.string().optional(),
-  status: z.string().default("draft"),
-});
 
 export async function POST(req: Request) {
   try {
@@ -33,44 +10,76 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const parsed = pageSchema.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid data", details: parsed.error.flatten() }, { status: 400 });
+
+    // แปลงค่าให้ถูกต้อง
+    const title = body.title?.trim();
+    const message = body.message?.trim();
+    const senderName = body.senderName?.trim() || "คนส่ง";
+    const occasion = body.occasion || "custom";
+    const theme = body.theme || "rose";
+    const animationSet = body.animationSet || "hearts";
+    const envelopeStyle = body.envelopeStyle || "classic";
+    const musicStyle = body.musicStyle || "default";
+    const endingEffect = body.endingEffect || "confetti";
+    
+    // แปลง sections ให้เป็น array เสมอ
+    let sections = body.sections;
+    if (typeof sections === "string") {
+      try { sections = JSON.parse(sections); } catch { sections = []; }
+    }
+    if (!Array.isArray(sections)) sections = ["letter", "reaction", "text-reply"];
+    
+    // แปลง questions
+    let questions = body.questions;
+    if (typeof questions === "string") {
+      try { questions = JSON.parse(questions); } catch { questions = []; }
+    }
+    if (!Array.isArray(questions)) questions = [];
+
+    // แปลงตัวเลข
+    const youtubeStartAt = body.youtubeStartAt ? Number(body.youtubeStartAt) : 0;
+    const youtubeEndAt = body.youtubeEndAt ? Number(body.youtubeEndAt) : null;
+
+    // Validation
+    if (!title || title.length < 1) {
+      return NextResponse.json({ error: "กรุณาใส่หัวข้อ" }, { status: 400 });
+    }
+    if (!message || message.length < 1) {
+      return NextResponse.json({ error: "กรุณาใส่ข้อความ" }, { status: 400 });
     }
 
-    const data = parsed.data;
     const slug = Math.random().toString(36).substring(2, 8) + Math.random().toString(36).substring(2, 8);
 
     const page = await prisma.page.create({
       data: {
         slug,
-        title: data.title,
-        message: data.message,
-        senderName: data.senderName,
-        occasion: data.occasion,
-        theme: data.theme,
-        animationSet: data.animationSet,
-        envelopeStyle: data.envelopeStyle,
-        musicStyle: data.musicStyle,
-        sections: data.sections,
-        questions: data.questions,
-        endingEffect: data.endingEffect,
-        youtubeUrl: data.youtubeUrl || null,
-        youtubeId: data.youtubeId || null,
-        youtubeStartAt: data.youtubeStartAt || 0,
-        youtubeEndAt: data.youtubeEndAt || null,
-        password: data.password || null,
-        scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : null,
-        expiresAt: data.expiresAt ? new Date(data.expiresAt) : null,
-        status: data.status,
+        title,
+        message,
+        senderName,
+        occasion,
+        theme,
+        animationSet,
+        envelopeStyle,
+        musicStyle,
+        sections,
+        questions,
+        endingEffect,
+        youtubeUrl: body.youtubeUrl || null,
+        youtubeId: body.youtubeId || null,
+        youtubeStartAt,
+        youtubeEndAt,
+        password: body.password || null,
+        scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : null,
+        expiresAt: body.expiresAt ? new Date(body.expiresAt) : null,
+        status: body.status || "published",
         ownerId: session.user.id,
       },
     });
 
     return NextResponse.json(page, { status: 201 });
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  } catch (error: any) {
+    console.error("POST /api/pages error:", error);
+    return NextResponse.json({ error: "Server error", details: error.message }, { status: 500 });
   }
 }
 
