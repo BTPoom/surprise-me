@@ -102,9 +102,7 @@ export function ReceiverView({ page }: { page: PageData }) {
                 className="max-w-md mx-auto px-4 mt-8"
               >
                 <MusicPlayer
-                  videoId={page.youtubeId!}
-                  startAt={page.youtubeStartAt || 0}
-                  endAt={page.youtubeEndAt || undefined}
+                  youtubeId={page.youtubeId!}
                 />
               </motion.div>
             )}
