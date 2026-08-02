@@ -1,6 +1,6 @@
 "use client";
 
-import Navbar from "@/components/shared/navbar";
+import { Navbar } from "@/components/shared/navbar";
 
 interface ReceiverViewProps {
   page?: any;
@@ -15,7 +15,7 @@ export function ReceiverView({ page, ...props }: ReceiverViewProps) {
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col items-center justify-center p-4">
-        {/* Content ซองจดหมายเดิมของคุณ */}
+        {/* Content ซองจดหมาย */}
       </main>
     </div>
   );
