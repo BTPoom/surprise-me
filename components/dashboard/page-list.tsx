@@ -20,7 +20,7 @@ interface PageListProps {
   onShare?: (page: PageItem) => void;
 }
 
-export default function PageList({ pages = [], onDelete, onShare }: PageListProps) {
+export function PageList({ pages = [], onDelete, onShare }: PageListProps) {
   if (!pages || pages.length === 0) {
     return (
       <div className="text-center py-12 bg-white/60 backdrop-blur-sm rounded-3xl border border-pink-100 p-8">

@@ -10,7 +10,7 @@ interface StatsCardsProps {
   };
 }
 
-export default function StatsCards({ stats }: StatsCardsProps) {
+export function StatsCards({ stats }: StatsCardsProps) {
   const items = [
     {
       title: "หน้าทั้งหมด",
