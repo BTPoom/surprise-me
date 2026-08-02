@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import SurpriseBackground from "./background-effects";
 import { OccasionIntro } from "./occasion-intro";
 import { EnvelopeAnimation } from "./envelope-animation";
 import { LetterContent } from "./letter-content";
@@ -47,7 +48,10 @@ export function ReceiverView({ page }: { page: PageData }) {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      {/* Animated background based on occasion */}
+      {/* 🎨 SurpriseMe Background Effects */}
+      <SurpriseBackground effect="mixed" intensity="medium" />
+
+      {/* Animated background based on occasion (original) */}
       <AnimatedBackground occasion={page.occasion} animationSet={page.animationSet} />
 
       {phase === "intro" && (
@@ -157,7 +161,6 @@ function AnimatedBackground({ occasion, animationSet }: { occasion: string; anim
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden">
-      {/* Gradient orbs */}
       <motion.div
         animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
@@ -169,7 +172,6 @@ function AnimatedBackground({ occasion, animationSet }: { occasion: string; anim
         className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-tr from-pink-200/30 to-rose-200/40 rounded-full blur-3xl"
       />
 
-      {/* Floating particles based on animationSet */}
       {animationSet === "hearts" && <FloatingParticles particles={["💖", "💕", "💗", "💓", "💝"]} />}
       {animationSet === "flowers" && <FloatingParticles particles={["🌸", "🌺", "🌷", "💐", "🌹"]} />}
       {animationSet === "stars" && <FloatingParticles particles={["⭐", "✨", "🌟", "💫", "✦"]} />}
