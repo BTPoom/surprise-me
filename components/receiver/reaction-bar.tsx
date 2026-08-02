@@ -198,23 +198,6 @@ export function ReactionBar({ pageId, occasion = "custom" }: { pageId: string; o
           ส่งข้อความตอบกลับ
         </Button>
       </div>
-
-      {/* Recent Reactions */}
-      {reactions.length > 0 && (
-        <div className="mt-6 pt-6 border-t border-rose-100">
-          <h4 className="text-sm font-medium text-slate-500 mb-3">ความรู้สึกล่าสุด</h4>
-          <div className="space-y-2 max-h-48 overflow-y-auto">
-            {reactions.slice(0, 10).map(reaction => (
-              <motion.div
-                key={reaction.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="flex items-start gap-3 p-3 rounded-xl bg-slate-50"
-              >
-                <span className="text-2xl">{reaction.emoji}</span>
-                {reaction.message && (
-                  <p className="text-sm text-slate-600 flex-1">{reaction.message}</p>
-                )}
               </motion.div>
             ))}
           </div>
