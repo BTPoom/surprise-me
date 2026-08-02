@@ -4,16 +4,16 @@ import { motion, useReducedMotion } from "framer-motion";
 
 // ตำแหน่งลอยของอนุภาค กำหนดค่าคงที่ล่วงหน้า (ไม่ใช้ Math.random() ตอน render)
 // เพื่อกัน Hydration Mismatch ระหว่าง Server กับ Client
-// กระจายตำแหน่งให้ห่างกันทั่วจอ หลีกเลี่ยงการอยู่ใกล้กันจนดูรวมเป็นกลุ่มก้อนที่ขอบใดขอบหนึ่ง
+// เว้นระยะห่างจากขอบจอไว้อย่างน้อย ~15% ทุกด้าน กันดูอึดอัด/ชิดขอบเกินไป
 const PARTICLES = [
-  { emoji: "💗", top: "8%", left: "6%", size: "text-xl", duration: 9, delay: 0 },
-  { emoji: "✨", top: "16%", left: "90%", size: "text-lg", duration: 7, delay: 0.6 },
-  { emoji: "🤍", top: "38%", left: "14%", size: "text-lg", duration: 10, delay: 1.2 },
-  { emoji: "✨", top: "48%", left: "86%", size: "text-xl", duration: 8, delay: 0.3 },
-  { emoji: "💗", top: "68%", left: "8%", size: "text-base", duration: 11, delay: 1.8 },
-  { emoji: "🌸", top: "88%", left: "92%", size: "text-lg", duration: 9, delay: 0.9 },
-  { emoji: "✨", top: "5%", left: "48%", size: "text-base", duration: 8, delay: 1.5 },
-  { emoji: "💗", top: "94%", left: "45%", size: "text-lg", duration: 10, delay: 0.4 },
+  { emoji: "💗", top: "14%", left: "16%", size: "text-xl", duration: 9, delay: 0 },
+  { emoji: "✨", top: "20%", left: "82%", size: "text-lg", duration: 7, delay: 0.6 },
+  { emoji: "🤍", top: "42%", left: "20%", size: "text-lg", duration: 10, delay: 1.2 },
+  { emoji: "✨", top: "46%", left: "78%", size: "text-xl", duration: 8, delay: 0.3 },
+  { emoji: "💗", top: "68%", left: "18%", size: "text-base", duration: 11, delay: 1.8 },
+  { emoji: "🌸", top: "78%", left: "82%", size: "text-lg", duration: 9, delay: 0.9 },
+  { emoji: "✨", top: "16%", left: "50%", size: "text-base", duration: 8, delay: 1.5 },
+  { emoji: "💗", top: "84%", left: "50%", size: "text-lg", duration: 10, delay: 0.4 },
 ];
 
 export function BackgroundEffects() {

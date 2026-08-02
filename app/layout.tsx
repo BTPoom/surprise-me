@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { SessionProviderWrapper } from "@/components/shared/session-provider";
-import { Navbar } from "@/components/shared/navbar";
+import { AppShell } from "@/components/shared/app-shell";
 import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -25,8 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="th">
       <body className={`${inter.className} antialiased bg-rose-50/30 min-h-screen`}>
         <SessionProviderWrapper>
-          <Navbar />
-          <main className="pt-16 md:pt-20">{children}</main>
+          <AppShell>{children}</AppShell>
           <Toaster />
         </SessionProviderWrapper>
       </body>
