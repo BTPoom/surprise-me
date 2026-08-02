@@ -12,7 +12,7 @@ import { PolaroidGallery } from "./polaroid-gallery";
 interface Photo {
   id: string;
   url: string;
-  caption?: string;
+  caption?: string | null;
 }
 
 interface PageData {
