@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { SessionProvider } from "@/components/shared/session-provider";
+import { SessionProviderWrapper } from "@/components/shared/session-provider";
 import { Navbar } from "@/components/shared/navbar";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -24,11 +24,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="th">
       <body className={`${inter.className} antialiased bg-rose-50/30 min-h-screen`}>
-        <SessionProvider>
+        <SessionProviderWrapper>
           <Navbar />
           <main className="pt-16 md:pt-20">{children}</main>
           <Toaster />
-        </SessionProvider>
+        </SessionProviderWrapper>
       </body>
     </html>
   );
