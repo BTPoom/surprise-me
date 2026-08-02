@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
-import { Share2, Pencil, MessageCircle, X, Heart } from "lucide-react";
+import { Share2, Pencil, MessageCircle, X, Heart, Trash2 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 
 interface ReactionItem {
@@ -25,15 +25,13 @@ interface PageItem {
   reactions: ReactionItem[];
 }
 
-interface FullReaction extends ReactionItem {
-  pageSlug?: string;
-  pageTitle?: string;
-}
+interface FullReaction extends ReactionItem {}
 
 export function PageList({ pages }: { pages: PageItem[] }) {
   const [openPageId, setOpenPageId] = useState<string | null>(null);
   const [fullReactions, setFullReactions] = useState<FullReaction[]>([]);
   const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleViewReactions = async (pageId: string) => {
     setOpenPageId(pageId);
@@ -46,6 +44,21 @@ export function PageList({ pages }: { pages: PageItem[] }) {
       setFullReactions([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (reactionId: string) => {
+    if (!confirm("ลบข้อความนี้?")) return;
+    setDeletingId(reactionId);
+    try {
+      const res = await fetch(`/api/reactions/${reactionId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      setFullReactions(prev => prev.filter(r => r.id !== reactionId));
+      toast({ title: "ลบสำเร็จ" });
+    } catch {
+      toast({ title: "ลบไม่สำเร็จ", variant: "destructive" });
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -160,7 +173,7 @@ export function PageList({ pages }: { pages: PageItem[] }) {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.05 }}
-                      className="flex items-start gap-3 bg-rose-50 rounded-xl p-4 border border-rose-100"
+                      className="flex items-start gap-3 bg-rose-50 rounded-xl p-4 border border-rose-100 group/item"
                     >
                       <span className="text-2xl shrink-0">{r.emoji}</span>
                       <div className="flex-1 min-w-0">
@@ -177,6 +190,18 @@ export function PageList({ pages }: { pages: PageItem[] }) {
                           })}
                         </p>
                       </div>
+                      <button
+                        onClick={() => handleDelete(r.id)}
+                        disabled={deletingId === r.id}
+                        className="opacity-0 group-hover/item:opacity-100 p-1.5 rounded-lg hover:bg-rose-200 text-rose-400 hover:text-rose-600 transition-all shrink-0"
+                        title="ลบ"
+                      >
+                        {deletingId === r.id ? (
+                          <span className="w-4 h-4 block border-2 border-rose-300 border-t-rose-500 rounded-full animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
+                      </button>
                     </motion.div>
                   ))
                 )}
