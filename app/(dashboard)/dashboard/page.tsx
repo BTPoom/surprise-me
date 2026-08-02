@@ -5,8 +5,7 @@ import { PageList } from "@/components/dashboard/page-list";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Plus, Heart } from "lucide-react";
-import { formatDate } from "@/lib/utils";
+import { Plus } from "lucide-react";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -23,17 +22,6 @@ export default async function DashboardPage() {
       },
     },
   });
-
-  const allReactions = pages
-    .flatMap((page) =>
-      page.reactions.map((r) => ({
-        ...r,
-        pageSlug: page.slug,
-        pageTitle: page.title,
-      }))
-    )
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 10);
 
   const stats = {
     total: pages.length,
@@ -58,42 +46,6 @@ export default async function DashboardPage() {
       </div>
 
       <StatsCards stats={stats} />
-
-      {allReactions.length > 0 && (
-        <div className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-2xl border border-rose-100 p-4 md:p-6">
-          <h2 className="text-base md:text-lg font-bold text-slate-800 flex items-center gap-2 mb-3 md:mb-4">
-            <Heart className="w-4 h-4 md:w-5 md:h-5 text-rose-500 fill-rose-500" />
-            ข้อความตอบกลับล่าสุด 💬
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 md:gap-3">
-            {allReactions.map((r) => (
-              <div
-                key={r.id}
-                className="bg-white rounded-xl p-3 md:p-4 shadow-sm border border-rose-100 flex items-start gap-2.5 md:gap-3"
-              >
-                <span className="text-xl md:text-2xl">{r.emoji}</span>
-                <div className="flex-1 min-w-0">
-                  {r.message && (
-                    <p className="text-xs md:text-sm text-slate-700 mb-0.5 md:mb-1">"{r.message}"</p>
-                  )}
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] md:text-xs text-slate-400">
-                      {formatDate(r.createdAt)}
-                    </span>
-                    <Link
-                      href={`/s/${r.pageSlug}`}
-                      target="_blank"
-                      className="text-[10px] md:text-xs text-rose-500 hover:text-rose-600 font-medium"
-                    >
-                      {r.pageTitle}
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       <div className="bg-white rounded-2xl border border-rose-100 shadow-sm p-4 md:p-6">
         <PageList pages={pages} />
