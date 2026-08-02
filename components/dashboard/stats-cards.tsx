@@ -20,20 +20,20 @@ export function StatsCards({ stats }: { stats: Stats }) {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
       {cards.map((card, i) => (
         <motion.div
           key={card.label}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.1 }}
-          className="bg-white/70 backdrop-blur-sm rounded-2xl p-5 border border-rose-100 shadow-sm hover:shadow-md transition-shadow"
+          className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 md:p-5 border border-rose-100 shadow-sm hover:shadow-md transition-shadow"
         >
-          <div className={`w-10 h-10 rounded-xl ${card.bg} ${card.color} flex items-center justify-center mb-3`}>
-            <card.icon className="w-5 h-5" />
+          <div className={`w-9 h-9 md:w-10 md:h-10 rounded-xl ${card.bg} ${card.color} flex items-center justify-center mb-3`}>
+            <card.icon className="w-4 h-4 md:w-5 md:h-5" />
           </div>
-          <div className="text-2xl font-bold text-slate-800">{card.value}</div>
-          <div className="text-sm text-slate-500">{card.label}</div>
+          <div className="text-xl md:text-2xl font-bold text-slate-800">{card.value}</div>
+          <div className="text-xs md:text-sm text-slate-500">{card.label}</div>
         </motion.div>
       ))}
     </div>

@@ -1,27 +1,34 @@
-import type { Metadata } from "next";
-import { Inter, Caveat } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
+import { SessionProvider } from "@/components/shared/session-provider";
 import { Navbar } from "@/components/shared/navbar";
 import { Toaster } from "@/components/ui/toaster";
-import { SessionProviderWrapper } from "@/components/shared/session-provider";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
-const caveat = Caveat({ subsets: ["latin"], variable: "--font-handwriting", weight: ["400", "500", "600", "700"] });
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "SurpriseMe - สร้างหน้าเซอร์ไพรส์สุดพิเศษ",
-  description: "สร้างจดหมาย รูป Polaroid และเพลง YouTube ในแบบของคุณ",
+  title: "SurpriseMe - สร้างความประทับใจ",
+  description: "สร้างหน้าเซอร์ไพรส์ให้คนพิเศษ",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#fb7185",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="th">
-      <body className={`${inter.variable} ${caveat.variable} font-sans antialiased bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 min-h-screen`}>
-        <SessionProviderWrapper>
+      <body className={`${inter.className} antialiased bg-rose-50/30 min-h-screen`}>
+        <SessionProvider>
           <Navbar />
-          {children}
+          <main className="pt-16 md:pt-20">{children}</main>
           <Toaster />
-        </SessionProviderWrapper>
+        </SessionProvider>
       </body>
     </html>
   );

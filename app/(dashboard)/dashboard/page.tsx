@@ -43,14 +43,14 @@ export default async function DashboardPage() {
   };
 
   return (
-    <main className="max-w-6xl mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <main className="max-w-6xl mx-auto p-4 sm:p-5 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold">หน้าเซอร์ไพรส์ของคุณ 💌</h1>
-          <p className="text-slate-500 mt-1">สร้างและจัดการหน้าเซอร์ไพรส์ทั้งหมด</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">หน้าเซอร์ไพรส์ของคุณ 💌</h1>
+          <p className="text-sm sm:text-base text-slate-500 mt-1">สร้างและจัดการหน้าเซอร์ไพรส์ทั้งหมด</p>
         </div>
-        <Link href="/editor">
-          <Button className="bg-gradient-to-r from-rose-400 to-pink-500 rounded-full shadow-md hover:shadow-lg">
+        <Link href="/editor" className="shrink-0">
+          <Button className="bg-gradient-to-r from-rose-400 to-pink-500 rounded-full shadow-md hover:shadow-lg w-full sm:w-auto text-sm md:text-base">
             <Plus className="w-4 h-4 mr-2" />
             สร้างใหม่
           </Button>
@@ -60,30 +60,30 @@ export default async function DashboardPage() {
       <StatsCards stats={stats} />
 
       {allReactions.length > 0 && (
-        <div className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-2xl border border-rose-100 p-6">
-          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4">
-            <Heart className="w-5 h-5 text-rose-500 fill-rose-500" />
+        <div className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-2xl border border-rose-100 p-4 md:p-6">
+          <h2 className="text-base md:text-lg font-bold text-slate-800 flex items-center gap-2 mb-3 md:mb-4">
+            <Heart className="w-4 h-4 md:w-5 md:h-5 text-rose-500 fill-rose-500" />
             ข้อความตอบกลับล่าสุด 💬
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 md:gap-3">
             {allReactions.map((r) => (
               <div
                 key={r.id}
-                className="bg-white rounded-xl p-4 shadow-sm border border-rose-100 flex items-start gap-3"
+                className="bg-white rounded-xl p-3 md:p-4 shadow-sm border border-rose-100 flex items-start gap-2.5 md:gap-3"
               >
-                <span className="text-2xl">{r.emoji}</span>
+                <span className="text-xl md:text-2xl">{r.emoji}</span>
                 <div className="flex-1 min-w-0">
                   {r.message && (
-                    <p className="text-sm text-slate-700 mb-1">"{r.message}"</p>
+                    <p className="text-xs md:text-sm text-slate-700 mb-0.5 md:mb-1">"{r.message}"</p>
                   )}
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-400">
+                    <span className="text-[10px] md:text-xs text-slate-400">
                       {formatDate(r.createdAt)}
                     </span>
                     <Link
                       href={`/s/${r.pageSlug}`}
                       target="_blank"
-                      className="text-xs text-rose-500 hover:text-rose-600 font-medium"
+                      className="text-[10px] md:text-xs text-rose-500 hover:text-rose-600 font-medium"
                     >
                       {r.pageTitle}
                     </Link>
@@ -95,7 +95,7 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-rose-100 shadow-sm p-6">
+      <div className="bg-white rounded-2xl border border-rose-100 shadow-sm p-4 md:p-6">
         <PageList pages={pages} />
       </div>
     </main>
