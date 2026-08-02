@@ -18,7 +18,7 @@ interface ReactionBarProps {
   onSendReaction?: (data: { emoji?: string; message?: string }) => void;
 }
 
-export default function ReactionBar({ pageId, onSendReaction }: ReactionBarProps) {
+export function ReactionBar({ pageId, onSendReaction }: ReactionBarProps) {
   const [selectedEmoji, setSelectedEmoji] = useState<string>("");
   const [message, setMessage] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
