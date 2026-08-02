@@ -12,7 +12,7 @@ interface NavbarProps {
   onSignOut?: () => void;
 }
 
-export default function Navbar({ user, onSignOut }: NavbarProps) {
+export function Navbar({ user, onSignOut }: NavbarProps) {
   return (
     <header className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-md border-b border-pink-100/60 shadow-sm transition-all">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
