@@ -28,10 +28,27 @@ interface PageItem {
 interface FullReaction extends ReactionItem {}
 
 export function PageList({ pages }: { pages: PageItem[] }) {
+  const [pageList, setPageList] = useState(pages);
+  const [deletingPageId, setDeletingPageId] = useState<string | null>(null);
   const [openPageId, setOpenPageId] = useState<string | null>(null);
   const [fullReactions, setFullReactions] = useState<FullReaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDeletePage = async (pageId: string) => {
+    if (!confirm("ลบหน้านี้? ข้อมูลทั้งหมดจะหายไป")) return;
+    setDeletingPageId(pageId);
+    try {
+      const res = await fetch(`/api/pages/${pageId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      setPageList((prev) => prev.filter((p) => p.id !== pageId));
+      toast({ title: "ลบสำเร็จ" });
+    } catch {
+      toast({ title: "ลบไม่สำเร็จ", variant: "destructive" });
+    } finally {
+      setDeletingPageId(null);
+    }
+  };
 
   const handleViewReactions = async (pageId: string) => {
     setOpenPageId(pageId);
@@ -47,13 +64,13 @@ export function PageList({ pages }: { pages: PageItem[] }) {
     }
   };
 
-  const handleDelete = async (reactionId: string) => {
+  const handleDeleteReaction = async (reactionId: string) => {
     if (!confirm("ลบข้อความนี้?")) return;
     setDeletingId(reactionId);
     try {
       const res = await fetch(`/api/reactions/${reactionId}`, { method: "DELETE" });
       if (!res.ok) throw new Error();
-      setFullReactions(prev => prev.filter(r => r.id !== reactionId));
+      setFullReactions((prev) => prev.filter((r) => r.id !== reactionId));
       toast({ title: "ลบสำเร็จ" });
     } catch {
       toast({ title: "ลบไม่สำเร็จ", variant: "destructive" });
@@ -62,7 +79,7 @@ export function PageList({ pages }: { pages: PageItem[] }) {
     }
   };
 
-  if (pages.length === 0) {
+  if (pageList.length === 0) {
     return (
       <div className="text-center py-12">
         <div className="text-5xl mb-4">💌</div>
@@ -75,7 +92,7 @@ export function PageList({ pages }: { pages: PageItem[] }) {
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {pages.map((page, i) => (
+        {pageList.map((page, i) => (
           <motion.div
             key={page.id}
             initial={{ opacity: 0, y: 20 }}
@@ -122,6 +139,19 @@ export function PageList({ pages }: { pages: PageItem[] }) {
                     <Pencil className="w-3 h-3 mr-1" /> แก้ไข
                   </Button>
                 </Link>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="px-2 border-rose-200 text-rose-500 hover:bg-rose-50 hover:text-rose-600"
+                  onClick={() => handleDeletePage(page.id)}
+                  disabled={deletingPageId === page.id}
+                >
+                  {deletingPageId === page.id ? (
+                    <span className="w-3 h-3 block border-2 border-rose-300 border-t-rose-500 rounded-full animate-spin" />
+                  ) : (
+                    <Trash2 className="w-3 h-3" />
+                  )}
+                </Button>
               </div>
             </div>
           </motion.div>
@@ -143,7 +173,7 @@ export function PageList({ pages }: { pages: PageItem[] }) {
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
               className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-hidden"
-              onClick={e => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
             >
               <div className="p-5 border-b border-rose-100 flex items-center justify-between bg-gradient-to-r from-rose-50 to-pink-50">
                 <div className="flex items-center gap-2">
@@ -191,7 +221,7 @@ export function PageList({ pages }: { pages: PageItem[] }) {
                         </p>
                       </div>
                       <button
-                        onClick={() => handleDelete(r.id)}
+                        onClick={() => handleDeleteReaction(r.id)}
                         disabled={deletingId === r.id}
                         className="opacity-0 group-hover/item:opacity-100 p-1.5 rounded-lg hover:bg-rose-200 text-rose-400 hover:text-rose-600 transition-all shrink-0"
                         title="ลบ"

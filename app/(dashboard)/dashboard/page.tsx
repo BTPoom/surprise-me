@@ -5,7 +5,7 @@ import { PageList } from "@/components/dashboard/page-list";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Plus, Search, Heart } from "lucide-react";
+import { Plus, Heart } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
 export default async function DashboardPage() {
@@ -96,22 +96,6 @@ export default async function DashboardPage() {
       )}
 
       <div className="bg-white rounded-2xl border border-rose-100 shadow-sm p-6">
-        <div className="flex gap-3 mb-6">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="ค้นหาหน้าเซอร์ไพรส์..."
-              className="w-full pl-10 pr-4 py-2 rounded-xl border border-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-300"
-            />
-          </div>
-          <select className="px-4 py-2 rounded-xl border border-rose-100 bg-white focus:outline-none focus:ring-2 focus:ring-rose-300">
-            <option value="all">ทั้งหมด</option>
-            <option value="published">เผยแพร่แล้ว</option>
-            <option value="draft">ร่าง</option>
-            <option value="expired">หมดอายุ</option>
-          </select>
-        </div>
         <PageList pages={pages} />
       </div>
     </main>
