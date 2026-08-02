@@ -14,15 +14,15 @@ const QUICK_TEXTS = [
 ];
 
 interface ReactionBarProps {
+  pageId: string;
   occasion?: string;
-  pageId?: string;
-  onSendReaction?: (data: { emoji?: string; message?: string }) => void;
 }
 
-export function ReactionBar({ pageId, onSendReaction }: ReactionBarProps) {
+export function ReactionBar({ pageId, occasion }: ReactionBarProps) {
   const [selectedEmoji, setSelectedEmoji] = useState<string>("");
   const [message, setMessage] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSent, setIsSent] = useState(false);
 
   const handleQuickText = (text: string) => {
     setMessage(text);
@@ -31,16 +31,42 @@ export function ReactionBar({ pageId, onSendReaction }: ReactionBarProps) {
   const handleSubmit = async () => {
     if (!selectedEmoji && !message.trim()) return;
     setIsSubmitting(true);
-    
-    if (onSendReaction) {
-      await onSendReaction({ emoji: selectedEmoji, message });
+
+    try {
+      const res = await fetch("/api/reactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pageId,
+          emoji: selectedEmoji || null,
+          message: message.trim() || null,
+        }),
+      });
+
+      if (res.ok) {
+        setIsSent(true);
+        setSelectedEmoji("");
+        setMessage("");
+      }
+    } catch (err) {
+      console.error("Failed to send reaction:", err);
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    setIsSubmitting(false);
   };
 
+  if (isSent) {
+    return (
+      <div className="text-center py-8 bg-emerald-50/60 backdrop-blur-md rounded-2xl border border-emerald-100">
+        <div className="text-4xl mb-2">💌</div>
+        <h4 className="font-bold text-emerald-600">ส่งความรู้สึกเรียบร้อย!</h4>
+        <p className="text-xs text-emerald-500 mt-1">ขอบคุณที่ตอบกลับนะ</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full max-w-md mx-auto mt-8 bg-white/80 backdrop-blur-md rounded-3xl p-6 shadow-xl shadow-pink-100/50 border border-pink-100/60 transition-all duration-300">
+    <div className="w-full bg-white/80 backdrop-blur-md rounded-3xl p-6 shadow-xl shadow-pink-100/50 border border-pink-100/60">
       <div className="text-center mb-6">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-pink-50 text-pink-500 mb-3 shadow-inner">
           <Heart className="w-6 h-6 fill-pink-400/20" />
