@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { Suspense, useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Stepper } from "@/components/editor/stepper";
@@ -23,6 +23,8 @@ export interface EditorData {
   photos: { url: string; caption: string; order: number }[];
   youtubeUrl: string;
   youtubeId: string;
+  youtubeStartAt: number;
+  youtubeEndAt: number | null;
   theme: string;
   password: string;
   expiresAt: string;
@@ -37,13 +39,15 @@ const initialData: EditorData = {
   photos: [],
   youtubeUrl: "",
   youtubeId: "",
+  youtubeStartAt: 0,
+  youtubeEndAt: null,
   theme: "rose",
   password: "",
   expiresAt: "",
   status: "draft",
 };
 
-export default function EditorPage() {
+function EditorPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pageId = searchParams.get("id");
@@ -69,6 +73,8 @@ export default function EditorPage() {
             photos: page.photos || [],
             youtubeUrl: page.youtubeUrl || "",
             youtubeId: page.youtubeId || "",
+            youtubeStartAt: page.youtubeStartAt ?? 0,
+            youtubeEndAt: page.youtubeEndAt ?? null,
             theme: page.theme,
             password: "",
             expiresAt: page.expiresAt ? new Date(page.expiresAt).toISOString().split("T")[0] : "",
@@ -196,5 +202,19 @@ export default function EditorPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function EditorPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-rose-400" />
+        </div>
+      }
+    >
+      <EditorPageContent />
+    </Suspense>
   );
 }
