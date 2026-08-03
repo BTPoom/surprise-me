@@ -58,8 +58,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       include: { photos: true },
     });
     return NextResponse.json(updated);
-  } catch {
-    return NextResponse.json({ error: "Error" }, { status: 500 });
+  } catch (error: any) {
+    console.error("PATCH /api/pages/[id] error:", error);
+    return NextResponse.json({ error: "Error", message: error.message, stack: error.stack }, { status: 500 });
   }
 }
 
