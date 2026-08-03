@@ -133,11 +133,7 @@ export function OccasionIntro({ occasion, onComplete }: Props) {
             />
           </motion.div>
 
-          {occasion === "birthday" && <BirthdayParticles />}
-          {occasion === "anniversary" && <FloatingHearts />}
-          {occasion === "confession" && <FloatingHearts />}
-          {occasion === "valentine" && <FloatingHearts />}
-          {occasion === "missyou" && <ShootingStars />}
+
         </motion.div>
       )}
     </AnimatePresence>
