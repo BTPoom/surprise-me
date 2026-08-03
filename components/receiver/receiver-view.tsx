@@ -9,6 +9,12 @@ import { ReactionBar } from "./reaction-bar";
 import { MusicPlayer } from "./music-player";
 import { PolaroidGallery } from "./polaroid-gallery";
 import { BackgroundEffects } from "./background-effects";
+import { ScratchCard } from "./scratch-card";
+import { LoveCouponList, LoveCoupon } from "./love-coupon";
+import { MemoryQuiz, MemoryQuestion } from "./memory-quiz";
+import { TimeLocked } from "./time-locked";
+import { VoiceMessage } from "./voice-message";
+import { SurpriseVideo } from "./surprise-video";
 
 interface Photo {
   id: string;
@@ -36,6 +42,12 @@ interface PageData {
   youtubeStartAt?: number | null;
   youtubeEndAt?: number | null;
   photos: Photo[];
+  scratchCards?: { id: string; overlayText: string; reward: React.ReactNode }[];
+  coupons?: LoveCoupon[];
+  memoryQuestions?: MemoryQuestion[];
+  timeLocked?: { unlockAt: string; title: string; previewText: string; content: React.ReactNode }[];
+  voiceMessages?: { src: string; title: string; subtitle?: string; style?: "cassette" | "recorder" | "phone" | "bubble" }[];
+  surpriseVideos?: { src: string; poster?: string; title: string; style?: "film" | "tv" | "card" }[];
 }
 
 type Phase = "intro" | "envelope" | "content";
@@ -82,6 +94,8 @@ export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scro
   const hasMusic = Boolean(page.youtubeId);
   const hasGallery = page.photos.length > 0;
   const hasReaction = sections.length === 0 || sections.includes("reaction") || sections.includes("text-reply");
+
+  const themeColor = page.theme || "rose";
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-gradient-to-br from-pink-50 via-white to-rose-50">
@@ -133,10 +147,138 @@ export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scro
               <LetterContent page={page} />
             </motion.div>
 
+            {page.scratchCards && page.scratchCards.length > 0 && (
+              <motion.div
+                custom={1}
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+                className="max-w-md mx-auto mt-12 scroll-mt-6"
+              >
+                <div className="flex items-center gap-2 mb-4 px-1">
+                  <span className="text-lg">🎫</span>
+                  <h3 className="text-base font-semibold text-slate-600">ขูดเปิดเซอร์ไพรส์</h3>
+                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
+                </div>
+                <div className="flex flex-col gap-4 items-center">
+                  {page.scratchCards.map((card) => (
+                    <ScratchCard
+                      key={card.id}
+                      width={320}
+                      height={160}
+                      overlayText={card.overlayText}
+                      onRevealed={() => console.log("revealed", card.id)}
+                    >
+                      {card.reward}
+                    </ScratchCard>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {page.memoryQuestions && page.memoryQuestions.length > 0 && (
+              <motion.div
+                custom={2}
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+                className="max-w-xl mx-auto mt-12 scroll-mt-6"
+              >
+                <div className="flex items-center gap-2 mb-4 px-1">
+                  <span className="text-lg">🧩</span>
+                  <h3 className="text-base font-semibold text-slate-600">ปริศนาความทรงจำ</h3>
+                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
+                </div>
+                <MemoryQuiz
+                  questions={page.memoryQuestions}
+                  theme={themeColor as any}
+                  onComplete={() => console.log("quiz done")}
+                  onSkip={() => console.log("quiz skipped")}
+                />
+              </motion.div>
+            )}
+
+            {page.coupons && page.coupons.length > 0 && (
+              <motion.div
+                custom={3}
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+                className="max-w-md mx-auto mt-12 scroll-mt-6"
+              >
+                <div className="flex items-center gap-2 mb-4 px-1">
+                  <span className="text-lg">🎟️</span>
+                  <h3 className="text-base font-semibold text-slate-600">คูปองน่ารัก</h3>
+                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
+                </div>
+                <LoveCouponList
+                  coupons={page.coupons}
+                  onUse={(id) => console.log("used coupon", id)}
+                />
+              </motion.div>
+            )}
+
+            {page.timeLocked && page.timeLocked.length > 0 && (
+              <motion.div
+                custom={4}
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+                className="max-w-md mx-auto mt-12 scroll-mt-6"
+              >
+                <div className="flex items-center gap-2 mb-4 px-1">
+                  <span className="text-lg">⏰</span>
+                  <h3 className="text-base font-semibold text-slate-600">ข้อความลับตามเวลา</h3>
+                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
+                </div>
+                <div className="flex flex-col gap-4">
+                  {page.timeLocked.map((tl, i) => (
+                    <TimeLocked
+                      key={i}
+                      unlockAt={tl.unlockAt}
+                      title={tl.title}
+                      previewText={tl.previewText}
+                      theme={themeColor as any}
+                    >
+                      {tl.content}
+                    </TimeLocked>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {page.voiceMessages && page.voiceMessages.length > 0 && (
+              <motion.div
+                custom={5}
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+                className="max-w-md mx-auto mt-12 scroll-mt-6"
+              >
+                <div className="flex items-center gap-2 mb-4 px-1">
+                  <span className="text-lg">🎙️</span>
+                  <h3 className="text-base font-semibold text-slate-600">ข้อความเสียง</h3>
+                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
+                </div>
+                <div className="flex flex-col gap-4">
+                  {page.voiceMessages.map((vm, i) => (
+                    <VoiceMessage
+                      key={i}
+                      src={vm.src}
+                      title={vm.title}
+                      subtitle={vm.subtitle}
+                      style={vm.style}
+                      theme={themeColor as any}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
             {hasGallery && (
               <motion.div
                 ref={galleryRef}
-                custom={1}
+                custom={6}
                 variants={fadeInUp}
                 initial="hidden"
                 animate="visible"
@@ -156,7 +298,7 @@ export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scro
             {hasMusic && (
               <motion.div
                 ref={musicRef}
-                custom={2}
+                custom={7}
                 variants={fadeInUp}
                 initial="hidden"
                 animate="visible"
@@ -177,10 +319,38 @@ export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scro
               </motion.div>
             )}
 
+            {page.surpriseVideos && page.surpriseVideos.length > 0 && (
+              <motion.div
+                custom={8}
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+                className="max-w-md mx-auto mt-12 scroll-mt-6"
+              >
+                <div className="flex items-center gap-2 mb-4 px-1">
+                  <span className="text-lg">🎬</span>
+                  <h3 className="text-base font-semibold text-slate-600">วิดีโอเซอร์ไพรส์</h3>
+                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
+                </div>
+                <div className="flex flex-col gap-4">
+                  {page.surpriseVideos.map((sv, i) => (
+                    <SurpriseVideo
+                      key={i}
+                      src={sv.src}
+                      poster={sv.poster}
+                      title={sv.title}
+                      style={sv.style}
+                      theme={themeColor as any}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
             {hasReaction && (
               <motion.div
                 ref={reactionRef}
-                custom={3}
+                custom={9}
                 variants={fadeInUp}
                 initial="hidden"
                 animate="visible"
@@ -198,7 +368,7 @@ export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scro
             {page.endingEffect !== "none" && <EndingEffect type={page.endingEffect} />}
 
             <motion.p
-              custom={4}
+              custom={10}
               variants={fadeInUp}
               initial="hidden"
               animate="visible"
