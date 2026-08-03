@@ -50,6 +50,8 @@ export async function POST(req: Request) {
 
     const slug = Math.random().toString(36).substring(2, 8) + Math.random().toString(36).substring(2, 8);
 
+    const photos = Array.isArray(body.photos) ? body.photos : [];
+
     const page = await prisma.page.create({
       data: {
         slug,
@@ -73,7 +75,11 @@ export async function POST(req: Request) {
         expiresAt: body.expiresAt ? new Date(body.expiresAt) : null,
         status: body.status || "published",
         ownerId: session.user.id,
+        photos: {
+          create: photos.map((p: any, i: number) => ({ url: p.url, caption: p.caption || null, order: p.order ?? i })),
+        },
       },
+      include: { photos: true },
     });
 
     return NextResponse.json(page, { status: 201 });

@@ -89,11 +89,16 @@ function EditorPageContent() {
     if (!data.title && !data.message) return;
     setIsSaving(true);
     try {
-      await fetch("/api/pages", {
-        method: "POST",
+      const isEditing = Boolean(data.id);
+      const res = await fetch(isEditing ? `/api/pages/${data.id}` : "/api/pages", {
+        method: isEditing ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...data, status: "draft" }),
       });
+      const result = await res.json();
+      if (res.ok && !isEditing && result.id) {
+        setData(prev => ({ ...prev, id: result.id }));
+      }
       setLastSaved(new Date());
     } catch (e) {
       console.error("Auto-save failed", e);
@@ -114,8 +119,9 @@ function EditorPageContent() {
   const handleSave = async (publish = false) => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/pages", {
-        method: "POST",
+      const isEditing = Boolean(data.id);
+      const res = await fetch(isEditing ? `/api/pages/${data.id}` : "/api/pages", {
+        method: isEditing ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...data, status: publish ? "published" : "draft" }),
       });

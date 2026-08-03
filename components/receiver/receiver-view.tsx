@@ -51,9 +51,11 @@ export function ReceiverView({ page }: { page: PageData }) {
   const [phase, setPhase] = useState<"intro" | "envelope" | "content">("intro");
 
   const sections = Array.isArray(page.sections) ? page.sections : [];
-  const hasMusic = sections.includes("music") && page.youtubeId;
-  const hasGallery = sections.includes("gallery") && page.photos.length > 0;
-  const hasReaction = sections.includes("reaction") || sections.includes("text-reply");
+  // sections array ยังไม่มี UI ให้ผู้ใช้เลือกจริงในตัว editor ตอนนี้
+  // เลยใช้การมีอยู่ของข้อมูลจริงเป็นตัวตัดสินว่าจะโชว์ block ไหน แทนการพึ่ง sections ล้วนๆ
+  const hasMusic = Boolean(page.youtubeId);
+  const hasGallery = page.photos.length > 0;
+  const hasReaction = sections.length === 0 || sections.includes("reaction") || sections.includes("text-reply");
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-gradient-to-br from-pink-50 via-white to-rose-50">

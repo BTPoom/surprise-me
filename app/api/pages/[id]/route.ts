@@ -29,9 +29,33 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
 
     const body = await req.json();
+    const { photos, id, ...rest } = body;
+    const data = { ...rest };
+
+    if (data.sections !== undefined && typeof data.sections === "string") {
+      try { data.sections = JSON.parse(data.sections); } catch { data.sections = []; }
+    }
+    if (data.questions !== undefined && typeof data.questions === "string") {
+      try { data.questions = JSON.parse(data.questions); } catch { data.questions = []; }
+    }
+    if (data.expiresAt) data.expiresAt = new Date(data.expiresAt);
+    if (data.scheduledAt) data.scheduledAt = new Date(data.scheduledAt);
+
+    if (Array.isArray(photos)) {
+      data.photos = {
+        deleteMany: {},
+        create: photos.map((p, i) => ({
+          url: p.url,
+          caption: p.caption || null,
+          order: p.order ?? i,
+        })),
+      };
+    }
+
     const updated = await prisma.page.update({
       where: { id: params.id },
-      data: body,
+      data,
+      include: { photos: true },
     });
     return NextResponse.json(updated);
   } catch {
