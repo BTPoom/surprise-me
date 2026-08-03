@@ -22,16 +22,31 @@ export function PhotoUpload({ data, onChange }: { data: EditorData; onChange: (d
     }
 
     setUploading(true);
-    // In production: upload to R2/S3 and get URL
-    // Mock upload delay
-    await new Promise(r => setTimeout(r, 1000));
-    const response = await fetch(`/api/upload?filename=${file.name}`, { method: "POST", body: file }); const blob = await response.json(); const mockUrl = blob.url;
+    try {
+      const response = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
+        method: "POST",
+        body: file,
+      });
 
-    onChange({
-      photos: [...data.photos, { url: mockUrl, caption: "", order: data.photos.length }],
-    });
-    setUploading(false);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error || "อัปโหลดไม่สำเร็จ");
+      }
+
+      const blob = await response.json();
+      onChange({
+        photos: [...data.photos, { url: blob.url, caption: "", order: data.photos.length }],
+      });
+    } catch (err) {
+      toast({
+        title: "อัปโหลดรูปไม่สำเร็จ",
+        description: err instanceof Error ? err.message : "กรุณาลองใหม่อีกครั้ง",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   const removePhoto = (index: number) => {
