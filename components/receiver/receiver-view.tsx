@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { OccasionIntro } from "./occasion-intro";
 import { EnvelopeAnimation } from "./envelope-animation";
@@ -38,6 +38,9 @@ interface PageData {
   photos: Photo[];
 }
 
+type Phase = "intro" | "envelope" | "content";
+export type ScrollTarget = "letter" | "gallery" | "music" | "reaction" | null;
+
 const fadeInUp = {
   hidden: { opacity: 0, y: 24 },
   visible: (i: number) => ({
@@ -47,19 +50,41 @@ const fadeInUp = {
   }),
 };
 
-export function ReceiverView({ page }: { page: PageData }) {
-  const [phase, setPhase] = useState<"intro" | "envelope" | "content">("intro");
+interface ReceiverViewProps {
+  page: PageData;
+  phase?: Phase;
+  onPhaseChange?: (phase: Phase) => void;
+  scrollToSection?: ScrollTarget;
+}
+
+export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scrollToSection }: ReceiverViewProps) {
+  const [internalPhase, setInternalPhase] = useState<Phase>("intro");
+  const phase = controlledPhase ?? internalPhase;
+  const setPhase = (p: Phase) => {
+    onPhaseChange ? onPhaseChange(p) : setInternalPhase(p);
+  };
+
+  const letterRef = useRef<HTMLDivElement>(null);
+  const galleryRef = useRef<HTMLDivElement>(null);
+  const musicRef = useRef<HTMLDivElement>(null);
+  const reactionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!scrollToSection || phase !== "content") return;
+    const refMap = { letter: letterRef, gallery: galleryRef, music: musicRef, reaction: reactionRef };
+    const id = requestAnimationFrame(() => {
+      refMap[scrollToSection].current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [scrollToSection, phase]);
 
   const sections = Array.isArray(page.sections) ? page.sections : [];
-  // sections array ยังไม่มี UI ให้ผู้ใช้เลือกจริงในตัว editor ตอนนี้
-  // เลยใช้การมีอยู่ของข้อมูลจริงเป็นตัวตัดสินว่าจะโชว์ block ไหน แทนการพึ่ง sections ล้วนๆ
   const hasMusic = Boolean(page.youtubeId);
   const hasGallery = page.photos.length > 0;
   const hasReaction = sections.length === 0 || sections.includes("reaction") || sections.includes("text-reply");
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-gradient-to-br from-pink-50 via-white to-rose-50">
-      {/* Background Effects: gradient + floating hearts/sparkles */}
       <BackgroundEffects />
 
       {phase === "intro" && (
@@ -98,22 +123,24 @@ export function ReceiverView({ page }: { page: PageData }) {
             className="relative z-10 pb-24 pt-10 px-4"
           >
             <motion.div
+              ref={letterRef}
               custom={0}
               variants={fadeInUp}
               initial="hidden"
               animate="visible"
-              className="max-w-xl mx-auto"
+              className="max-w-xl mx-auto scroll-mt-6"
             >
               <LetterContent page={page} />
             </motion.div>
 
             {hasGallery && (
               <motion.div
+                ref={galleryRef}
                 custom={1}
                 variants={fadeInUp}
                 initial="hidden"
                 animate="visible"
-                className="max-w-3xl mx-auto mt-12"
+                className="max-w-3xl mx-auto mt-12 scroll-mt-6"
               >
                 <div className="flex items-center gap-2 mb-4 px-1">
                   <span className="text-lg">📸</span>
@@ -128,11 +155,12 @@ export function ReceiverView({ page }: { page: PageData }) {
 
             {hasMusic && (
               <motion.div
+                ref={musicRef}
                 custom={2}
                 variants={fadeInUp}
                 initial="hidden"
                 animate="visible"
-                className="max-w-md mx-auto mt-12"
+                className="max-w-md mx-auto mt-12 scroll-mt-6"
               >
                 <div className="flex items-center gap-2 mb-4 px-1">
                   <span className="text-lg">🎵</span>
@@ -151,11 +179,12 @@ export function ReceiverView({ page }: { page: PageData }) {
 
             {hasReaction && (
               <motion.div
+                ref={reactionRef}
                 custom={3}
                 variants={fadeInUp}
                 initial="hidden"
                 animate="visible"
-                className="max-w-lg mx-auto mt-14"
+                className="max-w-lg mx-auto mt-14 scroll-mt-6"
               >
                 <div className="flex items-center gap-2 mb-4 px-1">
                   <span className="text-lg">💌</span>
@@ -191,9 +220,6 @@ function EndingEffect({ type }: { type: string }) {
         {Array.from({ length: 25 }).map((_, i) => (
           <motion.div
             key={i}
-            // ใช้ CSS "left" กำหนดตำแหน่งแนวนอนจริงเทียบกับความกว้างจอ
-            // (ห้ามใช้ x: "%" ใน Framer Motion เพราะมันคำนวณเทียบขนาดตัว element เอง ไม่ใช่ viewport
-            // ทำให้อนุภาคทุกชิ้นไปกองรวมกันที่ขอบใดขอบหนึ่งแทนที่จะกระจายทั่วจอ)
             style={{ left: `${Math.random() * 100}%` }}
             initial={{ y: -20, opacity: 1, rotate: 0 }}
             animate={{ y: "100vh", rotate: 720 }}

@@ -12,7 +12,8 @@ import { ThemeSelector } from "@/components/editor/theme-selector";
 import { SaveSettings } from "@/components/editor/save-settings";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye } from "lucide-react";
+import { PreviewPanel } from "@/components/editor/preview-panel";
 
 export interface EditorData {
   id?: string;
@@ -57,6 +58,7 @@ function EditorPageContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   // Load existing page
   useEffect(() => {
@@ -153,6 +155,16 @@ function EditorPageContent() {
 
   return (
     <main className="max-w-4xl mx-auto p-6 space-y-6">
+      <div className="flex justify-end">
+        <Button
+          variant="outline"
+          onClick={() => setShowPreview(true)}
+          className="border-rose-200 text-rose-600 hover:bg-rose-50 gap-2"
+        >
+          <Eye className="w-4 h-4" />
+          Preview
+        </Button>
+      </div>
       <Stepper currentStep={step} totalSteps={6} onChange={setStep} />
 
       <AnimatePresence mode="wait">
@@ -207,6 +219,9 @@ function EditorPageContent() {
           </div>
         )}
       </div>
+      {showPreview && (
+        <PreviewPanel data={data} onClose={() => setShowPreview(false)} />
+      )}
     </main>
   );
 }
