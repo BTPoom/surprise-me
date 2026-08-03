@@ -189,7 +189,11 @@ function EndingEffect({ type }: { type: string }) {
         {Array.from({ length: 25 }).map((_, i) => (
           <motion.div
             key={i}
-            initial={{ y: -20, x: `${Math.random() * 100}%`, opacity: 1, rotate: 0 }}
+            // ใช้ CSS "left" กำหนดตำแหน่งแนวนอนจริงเทียบกับความกว้างจอ
+            // (ห้ามใช้ x: "%" ใน Framer Motion เพราะมันคำนวณเทียบขนาดตัว element เอง ไม่ใช่ viewport
+            // ทำให้อนุภาคทุกชิ้นไปกองรวมกันที่ขอบใดขอบหนึ่งแทนที่จะกระจายทั่วจอ)
+            style={{ left: `${Math.random() * 100}%` }}
+            initial={{ y: -20, opacity: 1, rotate: 0 }}
             animate={{ y: "100vh", rotate: 720 }}
             transition={{ duration: 3 + Math.random() * 2, delay: Math.random() * 0.8 }}
             className="absolute text-xl md:text-2xl"
@@ -207,7 +211,8 @@ function EndingEffect({ type }: { type: string }) {
         {Array.from({ length: 20 }).map((_, i) => (
           <motion.div
             key={i}
-            initial={{ y: "100vh", x: `${Math.random() * 100}%`, opacity: 0, scale: 0.5 }}
+            style={{ left: `${Math.random() * 100}%` }}
+            initial={{ y: "100vh", opacity: 0, scale: 0.5 }}
             animate={{ y: "-20vh", opacity: [0, 1, 1, 0], scale: [0.5, 1.2, 1, 0.8] }}
             transition={{ duration: 5, delay: i * 0.3 }}
             className="absolute text-2xl md:text-3xl"
