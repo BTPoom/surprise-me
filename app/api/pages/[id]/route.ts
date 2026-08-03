@@ -38,8 +38,16 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (data.questions !== undefined && typeof data.questions === "string") {
       try { data.questions = JSON.parse(data.questions); } catch { data.questions = []; }
     }
-    if (data.expiresAt) data.expiresAt = new Date(data.expiresAt);
-    if (data.scheduledAt) data.scheduledAt = new Date(data.scheduledAt);
+    if (data.expiresAt !== undefined) {
+      data.expiresAt = data.expiresAt ? new Date(data.expiresAt) : null;
+    }
+    if (data.scheduledAt !== undefined) {
+      data.scheduledAt = data.scheduledAt ? new Date(data.scheduledAt) : null;
+    }
+    // password: editor ส่ง "" เวลาไม่ได้ตั้งรหัสผ่านใหม่ ให้แปลงเป็น null แทนการเขียนทับด้วยค่าว่าง
+    if (data.password === "") {
+      delete data.password;
+    }
 
     if (Array.isArray(photos)) {
       data.photos = {

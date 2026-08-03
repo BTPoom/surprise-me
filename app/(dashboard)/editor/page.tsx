@@ -126,7 +126,7 @@ function EditorPageContent() {
         body: JSON.stringify({ ...data, status: publish ? "published" : "draft" }),
       });
       const result = await res.json();
-      if (!res.ok) throw new Error(result.error);
+      if (!res.ok) throw new Error(result.message || result.error || "เกิดข้อผิดพลาดไม่ทราบสาเหตุ");
 
       toast({ 
         title: publish ? "เผยแพร่สำเร็จ! 🎉" : "บันทึกร่างสำเร็จ", 
