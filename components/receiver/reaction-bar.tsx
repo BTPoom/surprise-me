@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Send, Heart, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/components/ui/use-toast";
 
 const EMOJI_OPTIONS = ["🌷", "💖", "🙏", "✨", "💕", "🌹", "🤗", "😊"];
 
@@ -47,9 +48,21 @@ export function ReactionBar({ pageId, occasion }: ReactionBarProps) {
         setIsSent(true);
         setSelectedEmoji("");
         setMessage("");
+      } else {
+        const body = await res.json().catch(() => ({}));
+        toast({
+          title: "ส่งข้อความไม่สำเร็จ",
+          description: body.error || "กรุณาลองใหม่อีกครั้ง",
+          variant: "destructive" as any,
+        });
       }
     } catch (err) {
       console.error("Failed to send reaction:", err);
+      toast({
+        title: "เกิดข้อผิดพลาด",
+        description: "ไม่สามารถส่งข้อความได้ กรุณาลองใหม่",
+        variant: "destructive" as any,
+      });
     } finally {
       setIsSubmitting(false);
     }

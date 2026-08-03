@@ -5,11 +5,16 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { z } from "zod";
 
-const reactionSchema = z.object({
-  pageId: z.string(),
-  emoji: z.string(),
-  message: z.string().max(500).optional(),
-});
+const reactionSchema = z
+  .object({
+    pageId: z.string(),
+    emoji: z.string().nullable().optional(),
+    message: z.string().max(500).nullable().optional(),
+  })
+  // ต้องมีอย่างน้อยหนึ่งอย่าง (อีโมจิ หรือ ข้อความ) ตรงกับเงื่อนไขฝั่ง frontend
+  .refine((data) => !!data.emoji || !!data.message?.trim(), {
+    message: "กรุณาเลือกอีโมจิหรือเขียนข้อความอย่างน้อยหนึ่งอย่าง",
+  });
 
 // Rate limit: 5 reactions per 10 minutes per IP (using simple header-based)
 // In production, use Upstash Redis for distributed rate limiting
@@ -24,7 +29,8 @@ export async function POST(req: Request) {
     const reaction = await prisma.reaction.create({
       data: {
         pageId: parsed.data.pageId,
-        emoji: parsed.data.emoji,
+        // ถ้าไม่มีอีโมจิ (ผู้ใช้เลือกพิมพ์ข้อความเองแทน) เก็บเป็นสตริงว่าง
+        emoji: parsed.data.emoji || "",
         message: parsed.data.message || null,
       },
     });
