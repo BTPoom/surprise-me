@@ -42,7 +42,7 @@ interface PageData {
   youtubeStartAt?: number | null;
   youtubeEndAt?: number | null;
   photos: Photo[];
-  scratchCards?: any[];
+  scratchCards?: any[] | null;
   coupons?: LoveCoupon[];
   memoryQuestions?: MemoryQuestion[];
   timeLocked?: { unlockAt: string; title: string; previewText: string; content: React.ReactNode }[];
