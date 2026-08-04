@@ -10,6 +10,8 @@ import { PhotoUpload } from "@/components/editor/photo-upload";
 import { MusicPicker } from "@/components/editor/music-picker";
 import { ThemeSelector } from "@/components/editor/theme-selector";
 import { SaveSettings } from "@/components/editor/save-settings";
+import { ScratchCardEditor } from "@/components/editor/scratch-card-editor";
+import { ExtrasEditor } from "@/components/editor/extras-editor";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { Loader2, Eye } from "lucide-react";
@@ -157,8 +159,11 @@ function EditorPageContent() {
     { label: "รูปภาพ", component: <PhotoUpload data={data} onChange={updateData} /> },
     { label: "เพลง", component: <MusicPicker data={data} onChange={updateData} /> },
     { label: "ธีม", component: <ThemeSelector data={data} onChange={updateData} /> },
+    { label: "การ์ดขูด", component: <ScratchCardEditor data={data} onChange={updateData} /> },
+    { label: "เซอร์ไพรส์", component: <ExtrasEditor data={data} onChange={updateData} /> },
     { label: "บันทึก", component: <SaveSettings data={data} onChange={updateData} lastSaved={lastSaved} isSaving={isSaving} /> },
   ];
+  const stepLabels = steps.map(s => s.label);
 
   return (
     <main className="max-w-4xl mx-auto p-6 space-y-6">
@@ -172,7 +177,7 @@ function EditorPageContent() {
           Preview
         </Button>
       </div>
-      <Stepper currentStep={step} totalSteps={6} onChange={setStep} />
+      <Stepper currentStep={step} totalSteps={steps.length} onChange={setStep} labels={stepLabels} />
 
       <AnimatePresence mode="wait">
         <motion.div
@@ -199,7 +204,7 @@ function EditorPageContent() {
 
         {step < 6 ? (
           <Button
-            onClick={() => setStep(s => Math.min(6, s + 1))}
+            onClick={() => setStep(s => Math.min(steps.length, s + 1))}
             className="bg-gradient-to-r from-rose-400 to-pink-500 text-white shadow-md hover:shadow-lg"
           >
             ถัดไป →

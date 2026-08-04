@@ -6,11 +6,13 @@ interface StepperProps {
   currentStep: number;
   totalSteps: number;
   onChange: (step: number) => void;
+  labels?: string[];
 }
 
-export function Stepper({ currentStep, totalSteps, onChange }: StepperProps) {
+export function Stepper({ currentStep, totalSteps, onChange, labels }: StepperProps) {
   const progress = ((currentStep - 1) / (totalSteps - 1)) * 100;
-  const labels = ["โอกาส", "ข้อความ", "รูปภาพ", "เพลง", "ธีม", "บันทึก"];
+  const defaultLabels = ["โอกาส", "ข้อความ", "รูปภาพ", "เพลง", "ธีม", "บันทึก"];
+  const stepLabels = labels || defaultLabels;
 
   return (
     <div className="bg-white rounded-2xl p-6 border border-rose-100 shadow-sm">
@@ -41,7 +43,7 @@ export function Stepper({ currentStep, totalSteps, onChange }: StepperProps) {
         })}
       </div>
       <div className="flex justify-between mt-3 text-xs font-medium text-slate-500">
-        {labels.map((label, i) => (
+        {stepLabels.map((label, i) => (
           <span key={i} className={i + 1 <= currentStep ? "text-rose-500" : ""}>{label}</span>
         ))}
       </div>
