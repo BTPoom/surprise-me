@@ -36,6 +36,7 @@ export interface EditorData {
   voiceStyle?: string;
   secretMessage?: string;
   secretUnlockAt?: string;
+  scratchCards?: { overlayText: string; reward: string }[];
 }
 
 const initialData: EditorData = {
