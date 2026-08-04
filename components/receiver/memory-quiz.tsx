@@ -90,7 +90,7 @@ export function MemoryQuiz({
   const [isFinished, setIsFinished] = useState(false);
 
   const current = questions[currentIndex];
-  const t = THEME_STYLES[theme];
+  const t = THEME_STYLES[theme] || "";
 
   const checkAnswer = () => {
     if (!current) return;

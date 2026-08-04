@@ -41,7 +41,7 @@ export function SurpriseVideo({
   const [currentTime, setCurrentTime] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const t = THEME[theme];
+  const t = THEME[theme] || "";
 
   useEffect(() => {
     const video = videoRef.current;

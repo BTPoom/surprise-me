@@ -129,7 +129,7 @@ export function VoiceMessage({
     setIsMuted(!isMuted);
   };
 
-  const t = THEME[theme];
+  const t = THEME[theme] || "";
 
   // --- Cassette Style ---
   if (style === "cassette") {
