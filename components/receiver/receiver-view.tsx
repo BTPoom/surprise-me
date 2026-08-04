@@ -47,7 +47,7 @@ interface PageData {
   memoryQuestions?: MemoryQuestion[];
   timeLocked?: { unlockAt: string; title: string; previewText: string; content: React.ReactNode }[];
   voiceUrl?: string | null;
-  voiceStyle?: string;
+  voiceStyle?: string | null;
   surpriseVideos?: { src: string; poster?: string; title: string; style?: "film" | "tv" | "card" }[];
 }
 
