@@ -30,6 +30,12 @@ export interface EditorData {
   password: string;
   expiresAt: string;
   status: "draft" | "published";
+  videoUrl?: string;
+  videoStyle?: string;
+  voiceUrl?: string;
+  voiceStyle?: string;
+  secretMessage?: string;
+  secretUnlockAt?: string;
 }
 
 const initialData: EditorData = {
