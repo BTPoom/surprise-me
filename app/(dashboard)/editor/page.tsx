@@ -36,7 +36,7 @@ export interface EditorData {
   voiceStyle?: string;
   secretMessage?: string;
   secretUnlockAt?: string;
-  scratchCards?: { overlayText: string; reward: string }[];
+  scratchCards?: { id: string; overlayText: string; rewardText: string; rewardEmoji: string }[];
 }
 
 const initialData: EditorData = {
