@@ -5,7 +5,8 @@ import { EditorData } from "@/app/(dashboard)/editor/page";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
-import { Video, Mic, Lock, X, Upload } from "lucide-react";
+import { Video, Lock, X, Upload } from "lucide-react";
+import { VoiceRecorder } from "./voice-recorder";
 import { ScratchCardEditor } from "./scratch-card-editor";
 
 const VIDEO_STYLES = [
@@ -26,9 +27,7 @@ const MAX_VOICE_MB = 8;
 
 export function ExtrasEditor({ data, onChange }: { data: EditorData; onChange: (d: Partial<EditorData>) => void }) {
   const [uploadingVideo, setUploadingVideo] = useState(false);
-  const [uploadingVoice, setUploadingVoice] = useState(false);
   const videoInputRef = useRef<HTMLInputElement>(null);
-  const voiceInputRef = useRef<HTMLInputElement>(null);
 
   const uploadFile = async (file: File): Promise<string> => {
     const response = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
@@ -66,28 +65,7 @@ export function ExtrasEditor({ data, onChange }: { data: EditorData; onChange: (
     }
   };
 
-  const handleVoiceChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > MAX_VOICE_MB * 1024 * 1024) {
-      toast({ title: "ไฟล์ใหญ่เกินไป", description: `จำกัดขนาดเสียงไม่เกิน ${MAX_VOICE_MB}MB`, variant: "destructive" });
-      return;
-    }
-    setUploadingVoice(true);
-    try {
-      const url = await uploadFile(file);
-      onChange({ voiceUrl: url });
-    } catch (err) {
-      toast({
-        title: "อัปโหลดเสียงไม่สำเร็จ",
-        description: err instanceof Error ? err.message : "กรุณาลองใหม่อีกครั้ง",
-        variant: "destructive",
-      });
-    } finally {
-      setUploadingVoice(false);
-      if (voiceInputRef.current) voiceInputRef.current.value = "";
-    }
-  };
+
 
   return (
     <div className="space-y-10">
@@ -159,54 +137,42 @@ export function ExtrasEditor({ data, onChange }: { data: EditorData; onChange: (
       {/* Voice Message */}
       <section>
         <div className="flex items-center gap-2 mb-3">
-          <Mic className="w-5 h-5 text-rose-400" />
+          <span className="text-lg">🎙️</span>
           <h3 className="font-semibold text-slate-700">ข้อความเสียง</h3>
         </div>
 
         {data.voiceUrl ? (
-          <div className="flex items-center gap-3 bg-rose-50 border border-rose-100 rounded-xl p-3">
-            <audio src={data.voiceUrl} controls className="flex-1 h-9" />
-            <button
-              onClick={() => onChange({ voiceUrl: "" })}
-              className="w-8 h-8 flex items-center justify-center rounded-full bg-white text-red-500 hover:bg-red-50 transition-colors shrink-0"
-            >
-              <X className="w-4 h-4" />
-            </button>
+          <div className="bg-rose-50 border border-rose-100 rounded-xl p-4 space-y-3">
+            <audio src={data.voiceUrl} controls className="w-full h-10" />
+            <div className="flex items-center justify-between">
+              <div className="flex gap-2 flex-wrap">
+                {VOICE_STYLES.map(s => (
+                  <button
+                    key={s.value}
+                    onClick={() => onChange({ voiceStyle: s.value })}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                      data.voiceStyle === s.value
+                        ? "bg-rose-500 text-white border-rose-500"
+                        : "bg-white text-slate-500 border-slate-200 hover:border-rose-200"
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => onChange({ voiceUrl: "", voiceStyle: "" })}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-white text-red-500 hover:bg-red-50 transition-colors shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         ) : (
-          <button
-            onClick={() => voiceInputRef.current?.click()}
-            disabled={uploadingVoice}
-            className="w-full border-2 border-dashed border-rose-200 rounded-xl flex items-center justify-center gap-2 py-6 hover:bg-rose-50 transition-colors"
-          >
-            {uploadingVoice ? (
-              <div className="w-5 h-5 border-2 border-rose-300 border-t-rose-500 rounded-full animate-spin" />
-            ) : (
-              <>
-                <Upload className="w-4 h-4 text-rose-300" />
-                <span className="text-sm text-rose-400">อัปโหลดเสียง (สูงสุด {MAX_VOICE_MB}MB)</span>
-              </>
-            )}
-          </button>
-        )}
-        <input ref={voiceInputRef} type="file" accept="audio/*" onChange={handleVoiceChange} className="hidden" />
-
-        {data.voiceUrl && (
-          <div className="flex gap-2 mt-3 flex-wrap">
-            {VOICE_STYLES.map(s => (
-              <button
-                key={s.value}
-                onClick={() => onChange({ voiceStyle: s.value })}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                  data.voiceStyle === s.value
-                    ? "bg-rose-500 text-white border-rose-500"
-                    : "bg-white text-slate-500 border-slate-200 hover:border-rose-200"
-                }`}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
+          <VoiceRecorder
+            onComplete={(url) => onChange({ voiceUrl: url })}
+            maxDuration={60}
+          />
         )}
       </section>
 
