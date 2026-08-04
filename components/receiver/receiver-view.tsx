@@ -42,7 +42,7 @@ interface PageData {
   youtubeStartAt?: number | null;
   youtubeEndAt?: number | null;
   photos: Photo[];
-  scratchCards?: any[] | null;
+  scratchCards?: unknown;
   coupons?: LoveCoupon[];
   memoryQuestions?: MemoryQuestion[];
   timeLocked?: { unlockAt: string; title: string; previewText: string; content: React.ReactNode }[];
@@ -147,7 +147,7 @@ export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scro
               <LetterContent page={page} />
             </motion.div>
 
-            {page.scratchCards && page.scratchCards.length > 0 && (
+            {Array.isArray(page.scratchCards) && page.scratchCards.length > 0 && (
               <motion.div
                 custom={1}
                 variants={fadeInUp}
