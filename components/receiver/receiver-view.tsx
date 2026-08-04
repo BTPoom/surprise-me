@@ -46,7 +46,8 @@ interface PageData {
   coupons?: LoveCoupon[];
   memoryQuestions?: MemoryQuestion[];
   timeLocked?: { unlockAt: string; title: string; previewText: string; content: React.ReactNode }[];
-  voiceMessages?: { src: string; title: string; subtitle?: string; style?: "cassette" | "recorder" | "phone" | "bubble" }[];
+  voiceUrl?: string;
+  voiceStyle?: string;
   surpriseVideos?: { src: string; poster?: string; title: string; style?: "film" | "tv" | "card" }[];
 }
 
@@ -250,7 +251,7 @@ export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scro
               </motion.div>
             )}
 
-            {page.voiceMessages && page.voiceMessages.length > 0 && (
+            {page.voiceUrl && (
               <motion.div
                 custom={5}
                 variants={fadeInUp}
@@ -263,18 +264,12 @@ export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scro
                   <h3 className="text-base font-semibold text-slate-600">ข้อความเสียง</h3>
                   <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
                 </div>
-                <div className="flex flex-col gap-4">
-                  {page.voiceMessages.map((vm, i) => (
-                    <VoiceMessage
-                      key={i}
-                      src={vm.src}
-                      title={vm.title}
-                      subtitle={vm.subtitle}
-                      style={vm.style}
-                      theme={themeColor as any}
-                    />
-                  ))}
-                </div>
+                <VoiceMessage
+                  src={page.voiceUrl}
+                  title="ข้อความจากใจ"
+                  style={(page.voiceStyle as any) || "bubble"}
+                  theme={themeColor as any}
+                />
               </motion.div>
             )}
 
