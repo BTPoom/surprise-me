@@ -42,7 +42,7 @@ interface PageData {
   youtubeStartAt?: number | null;
   youtubeEndAt?: number | null;
   photos: Photo[];
-  scratchCards?: { id: string; overlayText: string; reward: React.ReactNode }[];
+  scratchCards?: any[];
   coupons?: LoveCoupon[];
   memoryQuestions?: MemoryQuestion[];
   timeLocked?: { unlockAt: string; title: string; previewText: string; content: React.ReactNode }[];
@@ -166,10 +166,13 @@ export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scro
                       key={card.id}
                       width={320}
                       height={160}
-                      overlayText={card.overlayText}
+                      overlayText={card.overlayText || "ขูดที่นี่เพื่อเปิดเซอร์ไพรส์"}
                       onRevealed={() => console.log("revealed", card.id)}
                     >
-                      {card.reward}
+                      <div className="text-center p-4">
+                        <div className="text-3xl mb-2">{card.rewardEmoji || "🎁"}</div>
+                        <p className="text-rose-600 font-bold text-lg">{card.rewardText || "เซอร์ไพรส์!"}</p>
+                      </div>
                     </ScratchCard>
                   ))}
                 </div>
