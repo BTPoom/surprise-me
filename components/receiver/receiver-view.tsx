@@ -280,7 +280,7 @@ export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scro
                 variants={fadeInUp}
                 initial="hidden"
                 animate="visible"
-                className="max-w-3xl mx-auto mt-12 scroll-mt-6"
+                className="max-w-3xl mx-auto mt-12 mb-10 scroll-mt-6"
               >
                 <div className="flex items-center gap-2 mb-4 px-1">
                   <span className="text-lg">📸</span>

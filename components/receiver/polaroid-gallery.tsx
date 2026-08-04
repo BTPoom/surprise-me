@@ -22,7 +22,7 @@ export function PolaroidGallery({ photos }: { photos: Photo[] }) {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="bg-white rounded-2xl p-6 md:p-8 shadow-xl border border-rose-100"
+        className="bg-white rounded-2xl p-6 md:p-8 shadow-lg border border-rose-100 mb-4"
       >
         <h3 className="font-bold text-lg text-center mb-6 text-slate-700">ความทรงจำดีๆ 📸</h3>
         <div className="flex justify-center gap-4 md:gap-6 flex-wrap">
