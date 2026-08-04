@@ -29,8 +29,15 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
 
     const body = await req.json();
-    const { photos, id, scratchCards, ...rest } = body;
+    const { photos, id, ...rest } = body;
     const data = { ...rest };
+
+    if (data.scratchCards !== undefined && typeof data.scratchCards === "string") {
+      try { data.scratchCards = JSON.parse(data.scratchCards); } catch { data.scratchCards = []; }
+    }
+    if (data.secretUnlockAt !== undefined) {
+      data.secretUnlockAt = data.secretUnlockAt ? new Date(data.secretUnlockAt) : null;
+    }
 
     if (data.sections !== undefined && typeof data.sections === "string") {
       try { data.sections = JSON.parse(data.sections); } catch { data.sections = []; }
