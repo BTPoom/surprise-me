@@ -73,6 +73,13 @@ model Page {
   youtubeId      String?
   youtubeStartAt Int?       @default(0)
   youtubeEndAt   Int?
+  scratchCards   Json?      @default("[]")
+  videoUrl       String?
+  videoStyle     String?    @default("film")
+  voiceUrl       String?
+  voiceStyle     String?    @default("bubble")
+  secretMessage  String?    @db.Text
+  secretUnlockAt DateTime?
   password       String?
   scheduledAt    DateTime?
   expiresAt      DateTime?
