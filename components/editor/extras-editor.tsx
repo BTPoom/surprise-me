@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { Video, Mic, Lock, X, Upload } from "lucide-react";
+import { ScratchCardEditor } from "./scratch-card-editor";
 
 const VIDEO_STYLES = [
   { value: "film", label: "กล้องฟิล์ม" },
@@ -94,6 +95,11 @@ export function ExtrasEditor({ data, onChange }: { data: EditorData; onChange: (
         <h2 className="text-2xl font-bold mb-2">เซอร์ไพรส์เพิ่มเติม ✨</h2>
         <p className="text-slate-500 mb-6">ไม่บังคับ — เพิ่มได้ตามใจ ข้ามได้ถ้าไม่ต้องการ</p>
       </div>
+
+      {/* Scratch Cards */}
+      <section>
+        <ScratchCardEditor data={data} onChange={onChange} />
+      </section>
 
       {/* Surprise Video */}
       <section>

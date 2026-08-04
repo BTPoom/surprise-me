@@ -10,7 +10,6 @@ import { PhotoUpload } from "@/components/editor/photo-upload";
 import { MusicPicker } from "@/components/editor/music-picker";
 import { ThemeSelector } from "@/components/editor/theme-selector";
 import { SaveSettings } from "@/components/editor/save-settings";
-import { ScratchCardEditor } from "@/components/editor/scratch-card-editor";
 import { ExtrasEditor } from "@/components/editor/extras-editor";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
@@ -159,7 +158,6 @@ function EditorPageContent() {
     { label: "รูปภาพ", component: <PhotoUpload data={data} onChange={updateData} /> },
     { label: "เพลง", component: <MusicPicker data={data} onChange={updateData} /> },
     { label: "ธีม", component: <ThemeSelector data={data} onChange={updateData} /> },
-    { label: "การ์ดขูด", component: <ScratchCardEditor data={data} onChange={updateData} /> },
     { label: "เซอร์ไพรส์", component: <ExtrasEditor data={data} onChange={updateData} /> },
     { label: "บันทึก", component: <SaveSettings data={data} onChange={updateData} lastSaved={lastSaved} isSaving={isSaving} /> },
   ];
