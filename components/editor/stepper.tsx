@@ -42,9 +42,9 @@ export function Stepper({ currentStep, totalSteps, onChange, labels }: StepperPr
           );
         })}
       </div>
-      <div className="flex justify-between mt-3 text-xs font-medium text-slate-500">
+      <div className="flex mt-3 text-xs font-medium text-slate-500">
         {stepLabels.map((label, i) => (
-          <span key={i} className={i + 1 <= currentStep ? "text-rose-500" : ""}>{label}</span>
+          <span key={i} className={`flex-1 text-center ${i + 1 <= currentStep ? "text-rose-500" : ""}`}>{label}</span>
         ))}
       </div>
     </div>
