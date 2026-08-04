@@ -29,7 +29,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
 
     const body = await req.json();
-    const { photos, id, scratchCards, videoUrl, videoStyle, voiceUrl, voiceStyle, secretMessage, secretUnlockAt, ...rest } = body;
+    const { photos, id, scratchCards, ...rest } = body;
     const data = { ...rest };
 
     if (data.sections !== undefined && typeof data.sections === "string") {
