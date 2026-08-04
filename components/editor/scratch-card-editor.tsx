@@ -35,7 +35,7 @@ export function ScratchCardEditor({
     onChange({ scratchCards: cards.filter((_, i) => i !== index) });
   };
 
-  const updateCard = (index: number, partial: Partial<EditorData["scratchCards"][number]>) => {
+  const updateCard = (index: number, partial: Partial<{ id: string; overlayText: string; rewardText: string; rewardEmoji: string }>) => {
     const next = [...cards];
     next[index] = { ...next[index], ...partial };
     onChange({ scratchCards: next });
