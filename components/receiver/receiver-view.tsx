@@ -1,0 +1,411 @@
+"use client";
+
+import { useState, useRef, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { OccasionIntro } from "./occasion-intro";
+import { EnvelopeAnimation } from "./envelope-animation";
+import { LetterContent } from "./letter-content";
+import { ReactionBar } from "./reaction-bar";
+import { MusicPlayer } from "./music-player";
+import { PolaroidGallery } from "./polaroid-gallery";
+import { BackgroundEffects } from "./background-effects";
+import { SurpriseVideo, VideoStyle } from "./surprise-video";
+import { VoiceMessage, VoiceStyle } from "./voice-message";
+import { TimeLocked } from "./time-locked";
+import { ScratchCard } from "./scratch-card";
+
+interface Photo {
+  id: string;
+  url: string;
+  caption: string | null;
+  order: number;
+}
+
+interface ScratchCardData {
+  id: string;
+  overlayText: string;
+  rewardText: string;
+  rewardEmoji: string | null;
+}
+
+interface PageData {
+  id: string;
+  slug: string;
+  title: string;
+  message: string;
+  senderName: string;
+  occasion: string;
+  theme: string;
+  animationSet: string;
+  envelopeStyle: string;
+  musicStyle: string;
+  sections: any;
+  questions: any;
+  scratchCards?: ScratchCardData[] | any;
+  endingEffect: string;
+  youtubeUrl?: string | null;
+  youtubeId?: string | null;
+  youtubeStartAt?: number | null;
+  youtubeEndAt?: number | null;
+  videoUrl?: string | null;
+  videoStyle?: string | null;
+  voiceUrl?: string | null;
+  voiceStyle?: string | null;
+  secretUnlockAt?: string | Date | null;
+  secretMessage?: string | null;
+  photos: Photo[];
+}
+
+type Phase = "intro" | "envelope" | "content";
+export type ScrollTarget = "letter" | "gallery" | "scratch" | "music" | "video" | "voice" | "secret" | "reaction" | null;
+
+const fadeInUp = {
+  hidden: { opacity: 0, y: 24 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.1, duration: 0.5, ease: "easeOut" },
+  }),
+};
+
+const THEME_MAP: Record<string, "rose" | "blue" | "gold" | "green" | "purple"> = {
+  rose: "rose",
+  blue: "blue",
+  gold: "gold",
+  green: "green",
+  purple: "purple",
+};
+
+interface ReceiverViewProps {
+  page: PageData;
+  phase?: Phase;
+  onPhaseChange?: (phase: Phase) => void;
+  scrollToSection?: ScrollTarget;
+}
+
+export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scrollToSection }: ReceiverViewProps) {
+  const [internalPhase, setInternalPhase] = useState<Phase>("intro");
+  const phase = controlledPhase ?? internalPhase;
+  const setPhase = (p: Phase) => {
+    onPhaseChange ? onPhaseChange(p) : setInternalPhase(p);
+  };
+
+  const letterRef = useRef<HTMLDivElement>(null);
+  const galleryRef = useRef<HTMLDivElement>(null);
+  const scratchRef = useRef<HTMLDivElement>(null);
+  const musicRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLDivElement>(null);
+  const voiceRef = useRef<HTMLDivElement>(null);
+  const secretRef = useRef<HTMLDivElement>(null);
+  const reactionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!scrollToSection || phase !== "content") return;
+    const refMap = {
+      letter: letterRef,
+      gallery: galleryRef,
+      scratch: scratchRef,
+      music: musicRef,
+      video: videoRef,
+      voice: voiceRef,
+      secret: secretRef,
+      reaction: reactionRef,
+    };
+    const id = requestAnimationFrame(() => {
+      refMap[scrollToSection].current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [scrollToSection, phase]);
+
+  // บันทึกสถิติการขูดการ์ด — ข้ามตอนเป็น preview (page.id === "preview" ไม่มีจริงใน DB)
+  const handleCardRevealed = useCallback(
+    (cardId: string) => {
+      if (!page.id || page.id === "preview") return;
+      fetch("/api/scratch-reveal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pageId: page.id, cardId }),
+      }).catch(() => {
+        // เงียบไว้พอ ไม่ต้องรบกวนผู้รับด้วย error ของสถิติเบื้องหลัง
+      });
+    },
+    [page.id]
+  );
+
+  const sections = Array.isArray(page.sections) ? page.sections : [];
+  const scratchCards: ScratchCardData[] = Array.isArray(page.scratchCards) ? page.scratchCards : [];
+  const hasMusic = Boolean(page.youtubeId);
+  const hasGallery = page.photos.length > 0;
+  const hasScratch = scratchCards.length > 0;
+  const hasVideo = Boolean(page.videoUrl);
+  const hasVoice = Boolean(page.voiceUrl);
+  const hasSecret = Boolean(page.secretUnlockAt && page.secretMessage);
+  const hasReaction = sections.length === 0 || sections.includes("reaction") || sections.includes("text-reply");
+  const themeKey = THEME_MAP[page.theme] || "rose";
+
+  return (
+    <div className="relative min-h-screen overflow-x-hidden bg-gradient-to-br from-pink-50 via-white to-rose-50">
+      <BackgroundEffects />
+
+      {phase === "intro" && (
+        <OccasionIntro
+          occasion={page.occasion}
+          theme={page.theme}
+          onComplete={() => setPhase("envelope")}
+        />
+      )}
+
+      <AnimatePresence mode="wait">
+        {phase === "envelope" && (
+          <motion.div
+            key="envelope"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.4 } }}
+            className="min-h-screen flex items-center justify-center p-4 relative z-10"
+          >
+            <EnvelopeAnimation
+              style={page.envelopeStyle}
+              theme={page.theme}
+              senderName={page.senderName}
+              onOpen={() => setPhase("content")}
+            />
+          </motion.div>
+        )}
+
+        {phase === "content" && (
+          <motion.div
+            key="content"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="relative z-10 pb-24 pt-10 px-4"
+          >
+            <motion.div
+              ref={letterRef}
+              custom={0}
+              variants={fadeInUp}
+              initial="hidden"
+              animate="visible"
+              className="max-w-xl mx-auto scroll-mt-6"
+            >
+              <LetterContent page={page} />
+            </motion.div>
+
+            {hasGallery && (
+              <motion.div
+                ref={galleryRef}
+                custom={1}
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+                className="max-w-3xl mx-auto mt-12 scroll-mt-6"
+              >
+                <div className="flex items-center gap-2 mb-4 px-1">
+                  <span className="text-lg">📸</span>
+                  <h3 className="text-base font-semibold text-slate-600">ความทรงจำดี ๆ</h3>
+                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
+                </div>
+                <div className="bg-white/50 backdrop-blur-xl rounded-2xl shadow-lg border border-white/50 p-5">
+                  <PolaroidGallery photos={page.photos} />
+                </div>
+              </motion.div>
+            )}
+
+            {hasScratch && (
+              <motion.div
+                ref={scratchRef}
+                custom={2}
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+                className="max-w-3xl mx-auto mt-12 scroll-mt-6"
+              >
+                <div className="flex items-center gap-2 mb-4 px-1">
+                  <span className="text-lg">🎫</span>
+                  <h3 className="text-base font-semibold text-slate-600">ขูดเปิดเซอร์ไพรส์</h3>
+                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
+                </div>
+                <div className="flex flex-wrap gap-5 justify-center">
+                  {scratchCards.map((card) => (
+                    <ScratchCard
+                      key={card.id}
+                      width={300}
+                      height={160}
+                      overlayText={card.overlayText}
+                      onRevealed={() => handleCardRevealed(card.id)}
+                    >
+                      <div className="flex flex-col items-center justify-center text-center px-4">
+                        {card.rewardEmoji && <span className="text-3xl mb-2">{card.rewardEmoji}</span>}
+                        <p className="text-sm font-medium text-rose-600">{card.rewardText}</p>
+                      </div>
+                    </ScratchCard>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {hasMusic && (
+              <motion.div
+                ref={musicRef}
+                custom={3}
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+                className="max-w-md mx-auto mt-12 scroll-mt-6"
+              >
+                <div className="flex items-center gap-2 mb-4 px-1">
+                  <span className="text-lg">🎵</span>
+                  <h3 className="text-base font-semibold text-slate-600">เพลงประกอบ</h3>
+                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
+                </div>
+                <div className="bg-white/50 backdrop-blur-xl rounded-2xl shadow-lg border border-white/50 p-5">
+                  <MusicPlayer
+                    youtubeId={page.youtubeId!}
+                    startAt={page.youtubeStartAt || 0}
+                    endAt={page.youtubeEndAt || undefined}
+                  />
+                </div>
+              </motion.div>
+            )}
+
+            {hasVideo && (
+              <motion.div
+                ref={videoRef}
+                custom={4}
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+                className="mt-12 scroll-mt-6"
+              >
+                <div className="flex items-center gap-2 mb-4 px-1 max-w-md mx-auto">
+                  <span className="text-lg">🎬</span>
+                  <h3 className="text-base font-semibold text-slate-600">วิดีโอเซอร์ไพรส์</h3>
+                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
+                </div>
+                <SurpriseVideo
+                  src={page.videoUrl!}
+                  style={(page.videoStyle as VideoStyle) || "film"}
+                  theme={themeKey}
+                />
+              </motion.div>
+            )}
+
+            {hasVoice && (
+              <motion.div
+                ref={voiceRef}
+                custom={5}
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+                className="mt-12 scroll-mt-6"
+              >
+                <div className="flex items-center gap-2 mb-4 px-1 max-w-md mx-auto">
+                  <span className="text-lg">🎙️</span>
+                  <h3 className="text-base font-semibold text-slate-600">ข้อความเสียง</h3>
+                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
+                </div>
+                <VoiceMessage
+                  src={page.voiceUrl!}
+                  style={(page.voiceStyle as VoiceStyle) || "cassette"}
+                  theme={themeKey}
+                />
+              </motion.div>
+            )}
+
+            {hasSecret && (
+              <motion.div
+                ref={secretRef}
+                custom={6}
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+                className="mt-12 scroll-mt-6"
+              >
+                <TimeLocked
+                  unlockAt={new Date(page.secretUnlockAt!).toISOString()}
+                  theme={themeKey}
+                >
+                  <p className="text-slate-700 whitespace-pre-line leading-relaxed">{page.secretMessage}</p>
+                </TimeLocked>
+              </motion.div>
+            )}
+
+            {hasReaction && (
+              <motion.div
+                ref={reactionRef}
+                custom={7}
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+                className="max-w-lg mx-auto mt-14 scroll-mt-6"
+              >
+                <div className="flex items-center gap-2 mb-4 px-1">
+                  <span className="text-lg">💌</span>
+                  <h3 className="text-base font-semibold text-slate-600">ส่งความรู้สึกกลับ</h3>
+                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
+                </div>
+                <ReactionBar pageId={page.id} occasion={page.occasion} />
+              </motion.div>
+            )}
+
+            {page.endingEffect !== "none" && <EndingEffect type={page.endingEffect} />}
+
+            <motion.p
+              custom={8}
+              variants={fadeInUp}
+              initial="hidden"
+              animate="visible"
+              className="text-center text-[11px] text-slate-400/70 mt-16 tracking-wide"
+            >
+              สร้างด้วย 💗 บน SurpriseMe
+            </motion.p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function EndingEffect({ type }: { type: string }) {
+  if (type === "confetti") {
+    return (
+      <div className="fixed inset-0 pointer-events-none z-40 overflow-hidden">
+        {Array.from({ length: 25 }).map((_, i) => (
+          <motion.div
+            key={i}
+            style={{ left: `${Math.random() * 100}%` }}
+            initial={{ y: -20, opacity: 1, rotate: 0 }}
+            animate={{ y: "100vh", rotate: 720 }}
+            transition={{ duration: 3 + Math.random() * 2, delay: Math.random() * 0.8 }}
+            className="absolute text-xl md:text-2xl"
+          >
+            {["🎉", "✨", "🎊", "💖", "🌟", "🎈", "🎀", "💫"][i % 8]}
+          </motion.div>
+        ))}
+      </div>
+    );
+  }
+
+  if (type === "hearts") {
+    return (
+      <div className="fixed inset-0 pointer-events-none z-40 overflow-hidden">
+        {Array.from({ length: 20 }).map((_, i) => (
+          <motion.div
+            key={i}
+            style={{ left: `${Math.random() * 100}%` }}
+            initial={{ y: "100vh", opacity: 0, scale: 0.5 }}
+            animate={{ y: "-20vh", opacity: [0, 1, 1, 0], scale: [0.5, 1.2, 1, 0.8] }}
+            transition={{ duration: 5, delay: i * 0.3 }}
+            className="absolute text-2xl md:text-3xl"
+          >
+            {["💖", "💕", "💗", "💓", "💝", "💘"][i % 6]}
+          </motion.div>
+        ))}
+      </div>
+    );
+  }
+
+  return null;
+}
