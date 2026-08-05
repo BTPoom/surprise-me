@@ -81,6 +81,14 @@ const THEME_MAP: Record<string, "rose" | "blue" | "gold" | "green" | "purple"> =
   purple: "purple",
 };
 
+const BG_THEME: Record<"rose" | "blue" | "gold" | "green" | "purple", string> = {
+  rose: "from-pink-50 via-white to-rose-50",
+  blue: "from-sky-50 via-white to-blue-50",
+  gold: "from-amber-50 via-white to-yellow-50",
+  green: "from-emerald-50 via-white to-green-50",
+  purple: "from-violet-50 via-white to-purple-50",
+};
+
 const DOT_THEME: Record<"rose" | "blue" | "gold" | "green" | "purple", { active: string; inactive: string; hover: string }> = {
   rose: { active: "bg-rose-500 shadow-[0_0_0_3px_rgba(244,63,94,0.2)]", inactive: "bg-rose-300/50", hover: "group-hover:bg-rose-400/70" },
   blue: { active: "bg-sky-500 shadow-[0_0_0_3px_rgba(14,165,233,0.2)]", inactive: "bg-sky-300/50", hover: "group-hover:bg-sky-400/70" },

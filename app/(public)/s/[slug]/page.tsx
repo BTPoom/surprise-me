@@ -13,7 +13,7 @@ export default async function PublicPage({ params }: { params: { slug: string } 
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-white">
+    <div className="min-h-screen bg-transparent">
       <ReceiverView page={page} />
     </div>
   );
