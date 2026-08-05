@@ -162,9 +162,10 @@ function EditorPageContent() {
     { label: "บันทึก", component: <SaveSettings data={data} onChange={updateData} lastSaved={lastSaved} isSaving={isSaving} /> },
   ];
   const stepLabels = steps.map(s => s.label);
+  const isLastStep = step === steps.length;
 
   return (
-    <main className="max-w-4xl mx-auto p-6 space-y-6">
+    <main className="max-w-4xl mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
       <div className="flex justify-end">
         <Button
           variant="outline"
@@ -172,7 +173,7 @@ function EditorPageContent() {
           className="border-rose-200 text-rose-600 hover:bg-rose-50 gap-2"
         >
           <Eye className="w-4 h-4" />
-          Preview
+          <span className="hidden sm:inline">Preview</span>
         </Button>
       </div>
       <Stepper currentStep={step} totalSteps={steps.length} onChange={setStep} labels={stepLabels} />
@@ -184,23 +185,23 @@ function EditorPageContent() {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.3 }}
-          className="bg-white rounded-2xl p-8 border border-rose-100 shadow-sm min-h-[400px]"
+          className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 border border-rose-100 shadow-sm min-h-[300px] sm:min-h-[400px]"
         >
           {steps[step - 1].component}
         </motion.div>
       </AnimatePresence>
 
-      <div className="flex justify-between items-center">
+      <div className={`flex gap-3 ${isLastStep ? "flex-col sm:flex-row sm:justify-between sm:items-center" : "justify-between items-center"}`}>
         <Button
           variant="outline"
           onClick={() => setStep(s => Math.max(1, s - 1))}
           disabled={step === 1}
-          className="border-rose-200 text-rose-600 hover:bg-rose-50"
+          className={`border-rose-200 text-rose-600 hover:bg-rose-50 ${isLastStep ? "order-3 sm:order-1" : ""}`}
         >
           ← ย้อนกลับ
         </Button>
 
-        {step < 6 ? (
+        {!isLastStep ? (
           <Button
             onClick={() => setStep(s => Math.min(steps.length, s + 1))}
             className="bg-gradient-to-r from-rose-400 to-pink-500 text-white shadow-md hover:shadow-lg"
@@ -208,12 +209,12 @@ function EditorPageContent() {
             ถัดไป →
           </Button>
         ) : (
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 order-1 sm:order-2">
             <Button
               variant="outline"
               onClick={() => handleSave(false)}
               disabled={isLoading}
-              className="border-rose-200"
+              className="border-rose-200 w-full sm:w-auto"
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               บันทึกร่าง
@@ -221,7 +222,7 @@ function EditorPageContent() {
             <Button
               onClick={() => handleSave(true)}
               disabled={isLoading}
-              className="bg-gradient-to-r from-rose-400 to-pink-500 text-white shadow-lg hover:shadow-xl"
+              className="bg-gradient-to-r from-rose-400 to-pink-500 text-white shadow-lg hover:shadow-xl w-full sm:w-auto"
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               เผยแพร่เลย! 🚀
