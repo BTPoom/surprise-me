@@ -5,17 +5,29 @@ import { motion } from "framer-motion";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 import YouTube from "react-youtube";
 
+type ThemeKey = "rose" | "blue" | "gold" | "green" | "purple";
+
 interface MusicPlayerProps {
   youtubeId: string;
   startAt?: number;
   endAt?: number | null;
+  theme?: ThemeKey;
 }
 
-export function MusicPlayer({ youtubeId, startAt = 0, endAt }: MusicPlayerProps) {
+const THEME: Record<ThemeKey, { gradient: string; track: string; fill: string; lightBg: string; lightText: string }> = {
+  rose: { gradient: "from-rose-500 to-pink-600", track: "bg-rose-100", fill: "from-rose-400 to-pink-500", lightBg: "bg-rose-50", lightText: "text-rose-500" },
+  blue: { gradient: "from-sky-500 to-blue-600", track: "bg-sky-100", fill: "from-sky-400 to-blue-500", lightBg: "bg-sky-50", lightText: "text-sky-500" },
+  gold: { gradient: "from-amber-500 to-yellow-600", track: "bg-amber-100", fill: "from-amber-400 to-yellow-500", lightBg: "bg-amber-50", lightText: "text-amber-500" },
+  green: { gradient: "from-emerald-500 to-green-600", track: "bg-emerald-100", fill: "from-emerald-400 to-green-500", lightBg: "bg-emerald-50", lightText: "text-emerald-500" },
+  purple: { gradient: "from-violet-500 to-purple-600", track: "bg-violet-100", fill: "from-violet-400 to-purple-500", lightBg: "bg-violet-50", lightText: "text-violet-500" },
+};
+
+export function MusicPlayer({ youtubeId, startAt = 0, endAt, theme = "rose" }: MusicPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const playerRef = useRef<any>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const t = THEME[theme] || THEME.rose;
 
   // ควบคุมเวลาเอง - ถ้าถึง endAt ให้ pause หรือ seek กลับไป start
   useEffect(() => {
@@ -92,10 +104,9 @@ export function MusicPlayer({ youtubeId, startAt = 0, endAt }: MusicPlayerProps)
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.5 }}
-      className="bg-white rounded-2xl p-6 shadow-xl border border-rose-100"
     >
-      <div className="flex items-center gap-4">
-        <div className="relative w-14 h-14 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center text-white shadow-lg overflow-hidden">
+      <div className="flex items-center gap-6">
+        <div className={`relative w-20 h-20 bg-gradient-to-br ${t.gradient} rounded-2xl flex items-center justify-center text-white shadow-lg overflow-hidden shrink-0`}>
           <img
             src={`https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`}
             alt="Thumbnail"
@@ -103,22 +114,22 @@ export function MusicPlayer({ youtubeId, startAt = 0, endAt }: MusicPlayerProps)
           />
           <button
             onClick={togglePlay}
-            className="relative z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors"
+            className="relative z-10 w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors"
           >
-            {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
+            {isPlaying ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 ml-0.5" />}
           </button>
         </div>
         
         <div className="flex-1 min-w-0">
-          <div className="font-bold text-slate-800 truncate">เพลงประกอบ 🎵</div>
-          <div className="text-sm text-slate-500">
+          <div className="font-bold text-lg text-slate-800 truncate">เพลงประกอบ 🎵</div>
+          <div className="text-base text-slate-500">
             {startAt > 0 && `เริ่ม ${formatTime(startAt)}`}
             {endAt && ` → ${formatTime(endAt)}`}
             {!startAt && !endAt && "กำลังเล่นจาก YouTube"}
           </div>
-          <div className="mt-2 h-1.5 bg-rose-100 rounded-full overflow-hidden">
+          <div className={`mt-3 h-2 ${t.track} rounded-full overflow-hidden`}>
             <motion.div
-              className="h-full bg-gradient-to-r from-rose-400 to-pink-500 rounded-full"
+              className={`h-full bg-gradient-to-r ${t.fill} rounded-full`}
               animate={{ width: isPlaying ? "100%" : "0%" }}
               transition={{ duration: 0.3 }}
             />
@@ -127,9 +138,9 @@ export function MusicPlayer({ youtubeId, startAt = 0, endAt }: MusicPlayerProps)
         
         <button
           onClick={toggleMute}
-          className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 hover:bg-rose-100 transition-colors"
+          className={`w-14 h-14 rounded-full ${t.lightBg} flex items-center justify-center ${t.lightText} hover:opacity-80 transition-opacity shrink-0`}
         >
-          {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+          {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
         </button>
       </div>
 

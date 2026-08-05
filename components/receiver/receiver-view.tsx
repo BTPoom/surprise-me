@@ -1,6 +1,7 @@
 "use client";
-
-import { useState, useRef, useEffect } from "react";
+ 
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { Noto_Serif_Thai, Noto_Sans_Thai } from "next/font/google";
 import { motion, AnimatePresence } from "framer-motion";
 import { OccasionIntro } from "./occasion-intro";
 import { EnvelopeAnimation } from "./envelope-animation";
@@ -9,20 +10,38 @@ import { ReactionBar } from "./reaction-bar";
 import { MusicPlayer } from "./music-player";
 import { PolaroidGallery } from "./polaroid-gallery";
 import { BackgroundEffects } from "./background-effects";
-import { ScratchCard } from "./scratch-card";
-import { LoveCouponList, LoveCoupon } from "./love-coupon";
-import { MemoryQuiz, MemoryQuestion } from "./memory-quiz";
+import { SectionHeader } from "./section-header";
+import { SurpriseVideo, VideoStyle } from "./surprise-video";
+import { VoiceMessage, VoiceStyle } from "./voice-message";
 import { TimeLocked } from "./time-locked";
-import { VoiceMessage } from "./voice-message";
-import { SurpriseVideo } from "./surprise-video";
-
+import { ScratchCard } from "./scratch-card";
+ 
+// ฟอนต์ไทยหรูสำหรับหน้าผู้รับโดยเฉพาะ (สโคปแค่หน้านี้ ไม่กระทบฟอนต์ส่วนอื่นของแอป)
+const notoSerifTh = Noto_Serif_Thai({
+  subsets: ["thai", "latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-serif-th",
+});
+const notoSansTh = Noto_Sans_Thai({
+  subsets: ["thai", "latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-sans-th",
+});
+ 
 interface Photo {
   id: string;
   url: string;
   caption: string | null;
   order: number;
 }
-
+ 
+interface ScratchCardData {
+  id: string;
+  overlayText: string;
+  rewardText: string;
+  rewardEmoji: string | null;
+}
+ 
 interface PageData {
   id: string;
   slug: string;
@@ -36,80 +55,270 @@ interface PageData {
   musicStyle: string;
   sections: any;
   questions: any;
+  scratchCards?: ScratchCardData[] | any;
   endingEffect: string;
   youtubeUrl?: string | null;
   youtubeId?: string | null;
   youtubeStartAt?: number | null;
   youtubeEndAt?: number | null;
-  photos: Photo[];
-  scratchCards?: unknown;
-  coupons?: LoveCoupon[];
-  memoryQuestions?: MemoryQuestion[];
-  timeLocked?: { unlockAt: string; title: string; previewText: string; content: React.ReactNode }[];
+  videoUrl?: string | null;
+  videoStyle?: string | null;
   voiceUrl?: string | null;
   voiceStyle?: string | null;
-  surpriseVideos?: { src: string; poster?: string; title: string; style?: "film" | "tv" | "card" }[];
+  secretUnlockAt?: string | Date | null;
+  secretMessage?: string | null;
+  photos: Photo[];
 }
-
+ 
 type Phase = "intro" | "envelope" | "content";
-export type ScrollTarget = "letter" | "gallery" | "music" | "reaction" | null;
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.1, duration: 0.5, ease: "easeOut" },
-  }),
+export type ScrollTarget = "letter" | "gallery" | "scratch" | "music" | "video" | "voice" | "secret" | "reaction" | null;
+ 
+const THEME_MAP: Record<string, "rose" | "blue" | "gold" | "green" | "purple"> = {
+  rose: "rose",
+  blue: "blue",
+  gold: "gold",
+  green: "green",
+  purple: "purple",
 };
 
+const DOT_THEME: Record<"rose" | "blue" | "gold" | "green" | "purple", { active: string; inactive: string; hover: string }> = {
+  rose: { active: "bg-rose-500 shadow-[0_0_0_3px_rgba(244,63,94,0.2)]", inactive: "bg-rose-300/50", hover: "group-hover:bg-rose-400/70" },
+  blue: { active: "bg-sky-500 shadow-[0_0_0_3px_rgba(14,165,233,0.2)]", inactive: "bg-sky-300/50", hover: "group-hover:bg-sky-400/70" },
+  gold: { active: "bg-gold-500 shadow-[0_0_0_3px_rgba(184,137,43,0.2)]", inactive: "bg-wine-300/50", hover: "group-hover:bg-gold-400/70" },
+  green: { active: "bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.2)]", inactive: "bg-emerald-300/50", hover: "group-hover:bg-emerald-400/70" },
+  purple: { active: "bg-violet-500 shadow-[0_0_0_3px_rgba(139,92,246,0.2)]", inactive: "bg-violet-300/50", hover: "group-hover:bg-violet-400/70" },
+};
+ 
 interface ReceiverViewProps {
   page: PageData;
   phase?: Phase;
   onPhaseChange?: (phase: Phase) => void;
   scrollToSection?: ScrollTarget;
 }
-
+ 
+interface Slide {
+  key: NonNullable<ScrollTarget>;
+  node: React.ReactNode;
+}
+ 
 export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scrollToSection }: ReceiverViewProps) {
   const [internalPhase, setInternalPhase] = useState<Phase>("intro");
   const phase = controlledPhase ?? internalPhase;
   const setPhase = (p: Phase) => {
     onPhaseChange ? onPhaseChange(p) : setInternalPhase(p);
   };
-
-  const letterRef = useRef<HTMLDivElement>(null);
-  const galleryRef = useRef<HTMLDivElement>(null);
-  const musicRef = useRef<HTMLDivElement>(null);
-  const reactionRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!scrollToSection || phase !== "content") return;
-    const refMap = { letter: letterRef, gallery: galleryRef, music: musicRef, reaction: reactionRef };
-    const id = requestAnimationFrame(() => {
-      refMap[scrollToSection].current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-    return () => cancelAnimationFrame(id);
-  }, [scrollToSection, phase]);
-
+ 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const slideRefs = useRef<Record<string, HTMLElement | null>>({});
+  const [activeIndex, setActiveIndex] = useState(0);
+ 
+  // บันทึกสถิติการขูดการ์ด — ข้ามตอนเป็น preview (page.id === "preview" ไม่มีจริงใน DB)
+  const handleCardRevealed = useCallback(
+    (cardId: string) => {
+      if (!page.id || page.id === "preview") return;
+      fetch("/api/scratch-reveal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pageId: page.id, cardId }),
+      }).catch(() => {
+        // เงียบไว้พอ ไม่ต้องรบกวนผู้รับด้วย error ของสถิติเบื้องหลัง
+      });
+    },
+    [page.id]
+  );
+ 
   const sections = Array.isArray(page.sections) ? page.sections : [];
+  const scratchCards: ScratchCardData[] = Array.isArray(page.scratchCards) ? page.scratchCards : [];
   const hasMusic = Boolean(page.youtubeId);
   const hasGallery = page.photos.length > 0;
+  const hasScratch = scratchCards.length > 0;
+  const hasVideo = Boolean(page.videoUrl);
+  const hasVoice = Boolean(page.voiceUrl);
+  const hasSecret = Boolean(page.secretUnlockAt && page.secretMessage);
   const hasReaction = sections.length === 0 || sections.includes("reaction") || sections.includes("text-reply");
+  const themeKey = THEME_MAP[page.theme] || "rose";
+ 
+  // รวมทุกหมวดที่มีจริงเป็นลิสต์ "สไลด์" เดียว — แต่ละหมวดคือหนึ่งหน้าจอเต็ม เลื่อนทีละหมวด
+  const slides = useMemo<Slide[]>(() => {
+    const list: Slide[] = [];
 
-  const themeColor = page.theme || "rose";
+    if (hasMusic) {
+      list.push({
+        key: "music",
+        node: (
+          <>
+            <SectionHeader label="เพลงประกอบ" />
+            <MusicPlayer
+              youtubeId={page.youtubeId!}
+              startAt={page.youtubeStartAt || 0}
+              endAt={page.youtubeEndAt || undefined}
+              theme={themeKey}
+            />
+          </>
+        ),
+      });
+    }
 
+    list.push({ key: "letter", node: <LetterContent page={page} /> });
+ 
+    if (hasGallery) {
+      list.push({
+        key: "gallery",
+        node: (
+          <>
+            <SectionHeader label="ความทรงจำดี ๆ" />
+            <PolaroidGallery photos={page.photos} theme={themeKey} />
+          </>
+        ),
+      });
+    }
+ 
+    if (hasScratch) {
+      list.push({
+        key: "scratch",
+        node: (
+          <>
+            <SectionHeader label="ขูดเปิดเซอร์ไพรส์" />
+            <div className="flex flex-wrap gap-5 justify-center">
+              {scratchCards.map((card) => (
+                <ScratchCard
+                  key={card.id}
+                  width={300}
+                  height={160}
+                  overlayText={card.overlayText}
+                  onRevealed={() => handleCardRevealed(card.id)}
+                >
+                  <div className="flex flex-col items-center justify-center text-center px-4">
+                    {card.rewardEmoji && <span className="text-3xl mb-2">{card.rewardEmoji}</span>}
+                    <p className="text-sm font-medium text-wine-500">{card.rewardText}</p>
+                  </div>
+                </ScratchCard>
+              ))}
+            </div>
+          </>
+        ),
+      });
+    }
+ 
+ 
+    if (hasVideo) {
+      list.push({
+        key: "video",
+        node: (
+          <>
+            <SectionHeader label="วิดีโอเซอร์ไพรส์" />
+            <SurpriseVideo src={page.videoUrl!} style={(page.videoStyle as VideoStyle) || "film"} theme={themeKey} />
+          </>
+        ),
+      });
+    }
+ 
+    if (hasVoice) {
+      list.push({
+        key: "voice",
+        node: (
+          <>
+            <SectionHeader label="ข้อความเสียง" />
+            <VoiceMessage src={page.voiceUrl!} style={(page.voiceStyle as VoiceStyle) || "cassette"} theme={themeKey} />
+          </>
+        ),
+      });
+    }
+ 
+    if (hasSecret) {
+      list.push({
+        key: "secret",
+        node: (
+          <TimeLocked unlockAt={new Date(page.secretUnlockAt!).toISOString()} theme={themeKey}>
+            <p className="text-slate-700 whitespace-pre-line leading-relaxed">{page.secretMessage}</p>
+          </TimeLocked>
+        ),
+      });
+    }
+ 
+    if (hasReaction) {
+      list.push({
+        key: "reaction",
+        node: (
+          <>
+            <SectionHeader label="ส่งความรู้สึกกลับ" />
+            <ReactionBar pageId={page.id} occasion={page.occasion} />
+          </>
+        ),
+      });
+    }
+ 
+    return list;
+  }, [page, hasGallery, hasScratch, hasMusic, hasVideo, hasVoice, hasSecret, hasReaction, scratchCards, themeKey, handleCardRevealed]);
+ 
+  const scrollToIndex = useCallback((index: number) => {
+    const key = slides[index]?.key;
+    if (!key) return;
+    slideRefs.current[key]?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [slides]);
+ 
+  // trigger จากภายนอก (เช่น ปุ่มในหน้า preview) ให้เลื่อนไปหมวดที่ระบุ
+  useEffect(() => {
+    if (!scrollToSection || phase !== "content") return;
+    const index = slides.findIndex((s) => s.key === scrollToSection);
+    if (index === -1) return;
+    const id = requestAnimationFrame(() => scrollToIndex(index));
+    return () => cancelAnimationFrame(id);
+  }, [scrollToSection, phase, slides, scrollToIndex]);
+ 
+  // ติดตามว่ากำลังดูสไลด์ไหนอยู่ เพื่อไฮไลต์จุดนำทางด้านข้าง
+  useEffect(() => {
+    if (phase !== "content") return;
+    const container = scrollContainerRef.current;
+    if (!container) return;
+ 
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio > 0.55) {
+            const key = entry.target.getAttribute("data-slide-key");
+            const idx = slides.findIndex((s) => s.key === key);
+            if (idx !== -1) setActiveIndex(idx);
+          }
+        });
+      },
+      { root: container, threshold: [0.55] }
+    );
+ 
+    slides.forEach((s) => {
+      const el = slideRefs.current[s.key];
+      if (el) observer.observe(el);
+    });
+ 
+    return () => observer.disconnect();
+  }, [phase, slides]);
+ 
+  // เลื่อนด้วยลูกศรขึ้น/ลงบนคีย์บอร์ด
+  useEffect(() => {
+    if (phase !== "content") return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowDown" || e.key === "PageDown") {
+        e.preventDefault();
+        scrollToIndex(Math.min(activeIndex + 1, slides.length - 1));
+      } else if (e.key === "ArrowUp" || e.key === "PageUp") {
+        e.preventDefault();
+        scrollToIndex(Math.max(activeIndex - 1, 0));
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [phase, activeIndex, slides.length, scrollToIndex]);
+ 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-gradient-to-br from-pink-50 via-white to-rose-50">
+    <div
+      className={`${notoSerifTh.variable} ${notoSansTh.variable} font-sansTh relative h-screen overflow-hidden bg-gradient-to-br from-[#FBF3E7] via-[#FDFAF3] to-[#F8EEDD]`}
+    >
       <BackgroundEffects />
-
+ 
       {phase === "intro" && (
-        <OccasionIntro
-          occasion={page.occasion}
-          theme={page.theme}
-          onComplete={() => setPhase("envelope")}
-        />
+        <OccasionIntro occasion={page.occasion} theme={page.theme} onComplete={() => setPhase("envelope")} />
       )}
-
+ 
       <AnimatePresence mode="wait">
         {phase === "envelope" && (
           <motion.div
@@ -127,260 +336,102 @@ export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scro
             />
           </motion.div>
         )}
-
+ 
         {phase === "content" && (
           <motion.div
             key="content"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className="relative z-10 pb-24 pt-10 px-4"
+            className="relative z-10 h-full"
           >
-            <motion.div
-              ref={letterRef}
-              custom={0}
-              variants={fadeInUp}
-              initial="hidden"
-              animate="visible"
-              className="max-w-xl mx-auto scroll-mt-6"
-            >
-              <LetterContent page={page} />
-            </motion.div>
-
-            {Array.isArray(page.scratchCards) && page.scratchCards.length > 0 && (
-              <motion.div
-                custom={1}
-                variants={fadeInUp}
-                initial="hidden"
-                animate="visible"
-                className="max-w-md mx-auto mt-12 scroll-mt-6"
-              >
-                <div className="flex items-center gap-2 mb-4 px-1">
-                  <span className="text-lg">🎫</span>
-                  <h3 className="text-base font-semibold text-slate-600">ขูดเปิดเซอร์ไพรส์</h3>
-                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
-                </div>
-                <div className="flex flex-col gap-4 items-center">
-                  {page.scratchCards.map((card) => (
-                    <ScratchCard
-                      key={card.id}
-                      width={320}
-                      height={160}
-                      overlayText={card.overlayText || "ขูดที่นี่เพื่อเปิดเซอร์ไพรส์"}
-                      onRevealed={() => console.log("revealed", card.id)}
-                    >
-                      <div className="text-center p-4">
-                        <div className="text-3xl mb-2">{card.rewardEmoji || "🎁"}</div>
-                        <p className="text-rose-600 font-bold text-lg">{card.rewardText || "เซอร์ไพรส์!"}</p>
-                      </div>
-                    </ScratchCard>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-
-            {page.memoryQuestions && page.memoryQuestions.length > 0 && (
-              <motion.div
-                custom={2}
-                variants={fadeInUp}
-                initial="hidden"
-                animate="visible"
-                className="max-w-xl mx-auto mt-12 scroll-mt-6"
-              >
-                <div className="flex items-center gap-2 mb-4 px-1">
-                  <span className="text-lg">🧩</span>
-                  <h3 className="text-base font-semibold text-slate-600">ปริศนาความทรงจำ</h3>
-                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
-                </div>
-                <MemoryQuiz
-                  questions={page.memoryQuestions}
-                  theme={themeColor as any}
-                  onComplete={() => console.log("quiz done")}
-                  onSkip={() => console.log("quiz skipped")}
-                />
-              </motion.div>
-            )}
-
-            {page.coupons && page.coupons.length > 0 && (
-              <motion.div
-                custom={3}
-                variants={fadeInUp}
-                initial="hidden"
-                animate="visible"
-                className="max-w-md mx-auto mt-12 scroll-mt-6"
-              >
-                <div className="flex items-center gap-2 mb-4 px-1">
-                  <span className="text-lg">🎟️</span>
-                  <h3 className="text-base font-semibold text-slate-600">คูปองน่ารัก</h3>
-                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
-                </div>
-                <LoveCouponList
-                  coupons={page.coupons}
-                  onUse={(id) => console.log("used coupon", id)}
-                />
-              </motion.div>
-            )}
-
-            {page.timeLocked && page.timeLocked.length > 0 && (
-              <motion.div
-                custom={4}
-                variants={fadeInUp}
-                initial="hidden"
-                animate="visible"
-                className="max-w-md mx-auto mt-12 scroll-mt-6"
-              >
-                <div className="flex items-center gap-2 mb-4 px-1">
-                  <span className="text-lg">⏰</span>
-                  <h3 className="text-base font-semibold text-slate-600">ข้อความลับตามเวลา</h3>
-                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
-                </div>
-                <div className="flex flex-col gap-4">
-                  {page.timeLocked.map((tl, i) => (
-                    <TimeLocked
-                      key={i}
-                      unlockAt={tl.unlockAt}
-                      title={tl.title}
-                      previewText={tl.previewText}
-                      theme={themeColor as any}
-                    >
-                      {tl.content}
-                    </TimeLocked>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-
-            {page.voiceUrl && (
-              <motion.div
-                custom={5}
-                variants={fadeInUp}
-                initial="hidden"
-                animate="visible"
-                className="max-w-md mx-auto mt-12 scroll-mt-6"
-              >
-                <div className="flex items-center gap-2 mb-4 px-1">
-                  <span className="text-lg">🎙️</span>
-                  <h3 className="text-base font-semibold text-slate-600">ข้อความเสียง</h3>
-                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
-                </div>
-                <VoiceMessage
-                  src={page.voiceUrl}
-                  title="ข้อความจากใจ"
-                  style={(page.voiceStyle as any) || "bubble"}
-                  theme={themeColor as any}
-                />
-              </motion.div>
-            )}
-
-            {hasGallery && (
-              <motion.div
-                ref={galleryRef}
-                custom={6}
-                variants={fadeInUp}
-                initial="hidden"
-                animate="visible"
-                className="max-w-3xl mx-auto mt-12 mb-10 scroll-mt-6"
-              >
-                <div className="flex items-center gap-2 mb-4 px-1">
-                  <span className="text-lg">📸</span>
-                  <h3 className="text-base font-semibold text-slate-600">ความทรงจำดี ๆ</h3>
-                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
-                </div>
-                <div className="bg-white/50 backdrop-blur-xl rounded-2xl shadow-lg border border-white/50 p-5">
-                  <PolaroidGallery photos={page.photos} />
-                </div>
-              </motion.div>
-            )}
-
-            {hasMusic && (
-              <motion.div
-                ref={musicRef}
-                custom={7}
-                variants={fadeInUp}
-                initial="hidden"
-                animate="visible"
-                className="max-w-md mx-auto mt-12 scroll-mt-6"
-              >
-                <div className="flex items-center gap-2 mb-4 px-1">
-                  <span className="text-lg">🎵</span>
-                  <h3 className="text-base font-semibold text-slate-600">เพลงประกอบ</h3>
-                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
-                </div>
-                <div className="bg-white/50 backdrop-blur-xl rounded-2xl shadow-lg border border-white/50 p-5">
-                  <MusicPlayer
-                    youtubeId={page.youtubeId!}
-                    startAt={page.youtubeStartAt || 0}
-                    endAt={page.youtubeEndAt || undefined}
+            {/* จุดนำทางด้านข้าง — กระโดดไปหมวดไหนก็ได้ ไฮไลต์หมวดที่กำลังดู */}
+            <nav className="hidden sm:flex flex-col items-center gap-3.5 fixed right-5 top-1/2 -translate-y-1/2 z-30">
+              {slides.map((s, i) => (
+                <button
+                  key={s.key}
+                  onClick={() => scrollToIndex(i)}
+                  aria-label={`ไปหมวดที่ ${i + 1}`}
+                  className="group relative flex items-center justify-center w-4 h-4"
+                >
+                  <span
+                    className={`rounded-full transition-all duration-300 ${
+                      i === activeIndex
+                        ? `w-2 h-2 ${DOT_THEME[themeKey].active}`
+                        : `w-1.5 h-1.5 ${DOT_THEME[themeKey].inactive} ${DOT_THEME[themeKey].hover}`
+                    }`}
                   />
-                </div>
-              </motion.div>
-            )}
-
-            {page.surpriseVideos && page.surpriseVideos.length > 0 && (
-              <motion.div
-                custom={8}
-                variants={fadeInUp}
-                initial="hidden"
-                animate="visible"
-                className="max-w-md mx-auto mt-12 scroll-mt-6"
-              >
-                <div className="flex items-center gap-2 mb-4 px-1">
-                  <span className="text-lg">🎬</span>
-                  <h3 className="text-base font-semibold text-slate-600">วิดีโอเซอร์ไพรส์</h3>
-                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
-                </div>
-                <div className="flex flex-col gap-4">
-                  {page.surpriseVideos.map((sv, i) => (
-                    <SurpriseVideo
-                      key={i}
-                      src={sv.src}
-                      poster={sv.poster}
-                      title={sv.title}
-                      style={sv.style}
-                      theme={themeColor as any}
-                    />
-                  ))}
-                </div>
-              </motion.div>
-            )}
-
-            {hasReaction && (
-              <motion.div
-                ref={reactionRef}
-                custom={9}
-                variants={fadeInUp}
-                initial="hidden"
-                animate="visible"
-                className="max-w-lg mx-auto mt-14 scroll-mt-6"
-              >
-                <div className="flex items-center gap-2 mb-4 px-1">
-                  <span className="text-lg">💌</span>
-                  <h3 className="text-base font-semibold text-slate-600">ส่งความรู้สึกกลับ</h3>
-                  <div className="flex-1 h-px bg-gradient-to-r from-rose-200/60 to-transparent ml-2" />
-                </div>
-                <ReactionBar pageId={page.id} occasion={page.occasion} />
-              </motion.div>
-            )}
-
-            {page.endingEffect !== "none" && <EndingEffect type={page.endingEffect} />}
-
-            <motion.p
-              custom={10}
-              variants={fadeInUp}
-              initial="hidden"
-              animate="visible"
-              className="text-center text-[11px] text-slate-400/70 mt-16 tracking-wide"
+                </button>
+              ))}
+            </nav>
+ 
+            {/* คอนเทนเนอร์เลื่อนแบบสแนป — แต่ละหมวดกินเต็มจอ เลื่อนทีละหมวด */}
+            <div
+              ref={scrollContainerRef}
+              className="h-full overflow-y-auto snap-y snap-mandatory scroll-smooth"
             >
-              สร้างด้วย 💗 บน SurpriseMe
-            </motion.p>
+              {slides.map((slide, i) => (
+                <section
+                  key={slide.key}
+                  data-slide-key={slide.key}
+                  ref={(el) => {
+                    slideRefs.current[slide.key] = el;
+                  }}
+                  className="min-h-screen w-full snap-start snap-always flex flex-col items-center justify-center px-4 py-20 relative"
+                >
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: false, amount: 0.5 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    className="w-full max-w-xl"
+                  >
+                    {slide.node}
+                  </motion.div>
+ 
+                  {i < slides.length - 1 && (
+                    <motion.div
+                      animate={{ y: [0, 8, 0] }}
+                      transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                      className="absolute bottom-8 flex flex-col items-center gap-1.5 text-gold-400/70"
+                    >
+                      <span className="font-sansTh text-[11px] tracking-[0.2em]">เลื่อนต่อ</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <path d="M4 8 L12 16 L20 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </motion.div>
+                  )}
+                </section>
+              ))}
+ 
+              {/* สไลด์ปิดท้าย */}
+              <section className="min-h-screen w-full snap-start snap-always flex flex-col items-center justify-center px-4 py-20">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: false, amount: 0.5 }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                  className="flex flex-col items-center gap-4"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-gold-400">
+                    <path d="M12 0 L14.2 9.8 L24 12 L14.2 14.2 L12 24 L9.8 14.2 L0 12 L9.8 9.8 Z" fill="currentColor" />
+                  </svg>
+                  <span className="h-px w-10 bg-gold-300/50" />
+                  <p className="text-center font-sansTh text-[11px] text-wine-400/60 tracking-[0.15em]">
+                    สร้างด้วยความตั้งใจ บน SurpriseMe
+                  </p>
+                </motion.div>
+              </section>
+            </div>
+ 
+            {page.endingEffect !== "none" && <EndingEffect type={page.endingEffect} />}
           </motion.div>
         )}
       </AnimatePresence>
     </div>
   );
 }
-
+ 
 function EndingEffect({ type }: { type: string }) {
   if (type === "confetti") {
     return (
@@ -394,13 +445,13 @@ function EndingEffect({ type }: { type: string }) {
             transition={{ duration: 3 + Math.random() * 2, delay: Math.random() * 0.8 }}
             className="absolute text-xl md:text-2xl"
           >
-            {["🎉", "✨", "🎊", "💖", "🌟", "🎈", "🎀", "💫"][i % 8]}
+            {["✨", "🤍", "🌟", "💫", "✦", "🕊️"][i % 6]}
           </motion.div>
         ))}
       </div>
     );
   }
-
+ 
   if (type === "hearts") {
     return (
       <div className="fixed inset-0 pointer-events-none z-40 overflow-hidden">
@@ -413,12 +464,12 @@ function EndingEffect({ type }: { type: string }) {
             transition={{ duration: 5, delay: i * 0.3 }}
             className="absolute text-2xl md:text-3xl"
           >
-            {["💖", "💕", "💗", "💓", "💝", "💘"][i % 6]}
+            {["🤍", "✨", "💛", "🕊️"][i % 4]}
           </motion.div>
         ))}
       </div>
     );
   }
-
+ 
   return null;
 }

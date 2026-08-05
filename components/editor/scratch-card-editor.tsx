@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { EditorData } from "@/app/(dashboard)/editor/page";
 import { Input } from "@/components/ui/input";
 import { X, Plus, Sparkles } from "lucide-react";
+import { ScratchCard } from "@/components/receiver/scratch-card";
 
 const MAX_CARDS = 5;
 const EMOJI_CHOICES = ["🎁", "💖", "🌟", "✨", "🍀", "🎉", "💌", "🌈"];
@@ -20,6 +22,7 @@ export function ScratchCardEditor({
   onChange: (d: Partial<EditorData>) => void;
 }) {
   const cards = data.scratchCards || [];
+  const [previewId, setPreviewId] = useState<string | null>(null);
 
   const addCard = () => {
     if (cards.length >= MAX_CARDS) return;
@@ -35,7 +38,7 @@ export function ScratchCardEditor({
     onChange({ scratchCards: cards.filter((_, i) => i !== index) });
   };
 
-  const updateCard = (index: number, partial: Partial<{ id: string; overlayText: string; rewardText: string; rewardEmoji: string }>) => {
+  const updateCard = (index: number, partial: Partial<NonNullable<EditorData["scratchCards"]>[number]>) => {
     const next = [...cards];
     next[index] = { ...next[index], ...partial };
     onChange({ scratchCards: next });
@@ -103,6 +106,30 @@ export function ScratchCardEditor({
                   </button>
                 ))}
               </div>
+
+              <button
+                onClick={() => setPreviewId(previewId === card.id ? null : card.id)}
+                className="text-xs text-rose-500 hover:underline mt-3"
+              >
+                {previewId === card.id ? "ซ่อนตัวอย่าง" : "👀 ดูตัวอย่างการ์ด"}
+              </button>
+
+              {previewId === card.id && (
+                <div className="mt-3 flex justify-center">
+                  <ScratchCard
+                    width={280}
+                    height={150}
+                    overlayText={card.overlayText || "ขูดที่นี่เพื่อเปิดเซอร์ไพรส์"}
+                  >
+                    <div className="flex flex-col items-center justify-center text-center px-4">
+                      <span className="text-3xl mb-1">{card.rewardEmoji}</span>
+                      <p className="text-sm font-medium text-rose-600">
+                        {card.rewardText || "ยังไม่ใส่ข้อความรางวัล"}
+                      </p>
+                    </div>
+                  </ScratchCard>
+                </div>
+              )}
             </motion.div>
           ))}
         </AnimatePresence>

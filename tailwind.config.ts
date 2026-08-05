@@ -1,5 +1,5 @@
 import type { Config } from "tailwindcss";
-
+ 
 const config: Config = {
   darkMode: ["class"],
   content: [
@@ -13,6 +13,8 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
         handwriting: ["'Caveat'", "cursive"],
+        serifTh: ["var(--font-serif-th)", "'Noto Serif Thai'", "serif"],
+        sansTh: ["var(--font-sans-th)", "'Noto Sans Thai'", "sans-serif"],
       },
       colors: {
         rose: {
@@ -27,6 +29,27 @@ const config: Config = {
           800: "#9f1239",
           900: "#881337",
         },
+        gold: {
+          50: "#FBF3E7",
+          100: "#F3E7D3",
+          200: "#E4C77E",
+          300: "#D4AF5A",
+          400: "#C9A227",
+          500: "#B8892B",
+          600: "#9C7220",
+          700: "#7A5818",
+        },
+        wine: {
+          50: "#F7E9EB",
+          100: "#EACBD1",
+          200: "#D4A2AC",
+          300: "#A85566",
+          400: "#8B3A47",
+          500: "#6B2737",
+          600: "#54101F",
+          700: "#3D0B17",
+        },
+        ink: "#362A22",
       },
       animation: {
         "fade-in": "fadeIn 0.5s ease-out",
@@ -42,5 +65,5 @@ const config: Config = {
   },
   plugins: [require("tailwindcss-animate")],
 };
-
+ 
 export default config;
