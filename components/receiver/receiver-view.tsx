@@ -319,7 +319,7 @@ export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scro
  
   return (
     <div
-      className={`${notoSerifTh.variable} ${notoSansTh.variable} font-sansTh relative h-screen overflow-hidden bg-gradient-to-br from-[#FBF3E7] via-[#FDFAF3] to-[#F8EEDD]`}
+      className={`${notoSerifTh.variable} ${notoSansTh.variable} font-sansTh relative h-screen overflow-hidden bg-gradient-to-br ${BG_THEME[themeKey]}`}
     >
       <BackgroundEffects />
  
