@@ -3,21 +3,21 @@
 import { Check } from "lucide-react";
 
 interface ThemeOption {
-  id: "rose" | "blue" | "gold" | "green" | "purple";
+  id: string;
   name: string;
   bgGradient: string;
-  textColor: string;
   accentColor: string;
 }
 
 // id ต้องตรงกับ THEME_MAP ใน components/receiver/receiver-view.tsx เป๊ะๆ
-// เพื่อให้เลือกธีมที่นี่แล้วไปโชว์ผลจริงที่หน้าเซอร์ไพรส์ (letter, gallery, music, video, voice, dot nav)
+// (และตรงกับ theme map ใน love-coupon.tsx, memory-quiz.tsx, surprise-video.tsx,
+// time-locked.tsx, voice-message.tsx) ไม่งั้นธีมที่เลือกจะไม่มีผลตอนแสดงผลจริง
 const THEMES: ThemeOption[] = [
-  { id: "rose", name: "หวานละมุน", bgGradient: "from-pink-100 via-rose-50 to-pink-50", textColor: "text-gray-800", accentColor: "border-rose-400" },
-  { id: "purple", name: "ฝันหวาน", bgGradient: "from-purple-100 via-pink-50 to-purple-50", textColor: "text-gray-800", accentColor: "border-violet-400" },
-  { id: "gold", name: "อบอุ่นหรูหรา", bgGradient: "from-amber-100 via-yellow-50 to-orange-50", textColor: "text-gray-800", accentColor: "border-amber-400" },
-  { id: "blue", name: "สงบใส", bgGradient: "from-sky-100 via-blue-50 to-cyan-50", textColor: "text-gray-800", accentColor: "border-sky-400" },
-  { id: "green", name: "ธรรมชาติ", bgGradient: "from-emerald-100 via-green-50 to-teal-50", textColor: "text-gray-800", accentColor: "border-emerald-400" },
+  { id: "rose", name: "หวานละมุน", bgGradient: "from-rose-300 via-pink-300 to-rose-400", accentColor: "border-rose-400" },
+  { id: "blue", name: "ฟ้าใส", bgGradient: "from-sky-300 via-blue-300 to-indigo-400", accentColor: "border-sky-400" },
+  { id: "gold", name: "อบอุ่น", bgGradient: "from-amber-300 via-yellow-300 to-orange-400", accentColor: "border-amber-400" },
+  { id: "green", name: "สดชื่น", bgGradient: "from-emerald-300 via-teal-300 to-cyan-400", accentColor: "border-emerald-400" },
+  { id: "purple", name: "ฝันหวาน", bgGradient: "from-violet-300 via-purple-300 to-fuchsia-400", accentColor: "border-violet-400" },
 ];
 
 interface EditorData {
@@ -50,15 +50,15 @@ export function ThemeSelector({ data, onChange }: ThemeSelectorProps) {
               onClick={() => handleChange(theme.id)}
               className={`relative p-3.5 rounded-2xl border-2 text-left transition-all duration-200 flex items-center justify-between bg-gradient-to-br ${theme.bgGradient} ${
                 isSelected
-                  ? `${theme.accentColor} shadow-md ring-2 ring-offset-1 scale-[1.02]`
-                  : "border-transparent hover:opacity-100 opacity-80"
+                  ? "border-pink-500 shadow-md ring-2 ring-pink-200 scale-[1.02]"
+                  : "border-transparent hover:border-pink-200 opacity-80 hover:opacity-100"
               }`}
             >
-              <span className={`text-xs font-bold ${theme.textColor}`}>
+              <span className="text-xs font-bold text-gray-800">
                 {theme.name}
               </span>
               {isSelected && (
-                <div className="w-5 h-5 rounded-full bg-gray-800/80 text-white flex items-center justify-center">
+                <div className="w-5 h-5 rounded-full bg-pink-500 text-white flex items-center justify-center">
                   <Check className="w-3 h-3 stroke-[3]" />
                 </div>
               )}

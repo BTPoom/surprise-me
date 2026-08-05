@@ -8,13 +8,20 @@ import { OccasionPicker } from "@/components/editor/occasion-picker";
 import { MessageEditor } from "@/components/editor/message-editor";
 import { PhotoUpload } from "@/components/editor/photo-upload";
 import { MusicPicker } from "@/components/editor/music-picker";
+import { ExtrasEditor } from "@/components/editor/extras-editor";
 import { ThemeSelector } from "@/components/editor/theme-selector";
 import { SaveSettings } from "@/components/editor/save-settings";
-import { ExtrasEditor } from "@/components/editor/extras-editor";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { Loader2, Eye } from "lucide-react";
 import { PreviewPanel } from "@/components/editor/preview-panel";
+
+export interface ScratchCard {
+  id: string;
+  overlayText: string;
+  rewardText: string;
+  rewardEmoji: string | null;
+}
 
 export interface EditorData {
   id?: string;
@@ -23,21 +30,21 @@ export interface EditorData {
   message: string;
   senderName: string;
   photos: { url: string; caption: string; order: number }[];
+  scratchCards: ScratchCard[];
   youtubeUrl: string;
   youtubeId: string;
   youtubeStartAt: number;
   youtubeEndAt: number | null;
+  videoUrl: string;
+  videoStyle: string;
+  voiceUrl: string;
+  voiceStyle: string;
+  secretUnlockAt: string;
+  secretMessage: string;
   theme: string;
   password: string;
   expiresAt: string;
   status: "draft" | "published";
-  videoUrl?: string;
-  videoStyle?: string;
-  voiceUrl?: string;
-  voiceStyle?: string;
-  secretMessage?: string;
-  secretUnlockAt?: string;
-  scratchCards?: { id: string; overlayText: string; rewardText: string; rewardEmoji: string }[];
 }
 
 const initialData: EditorData = {
@@ -46,15 +53,33 @@ const initialData: EditorData = {
   message: "",
   senderName: "",
   photos: [],
+  scratchCards: [],
   youtubeUrl: "",
   youtubeId: "",
   youtubeStartAt: 0,
   youtubeEndAt: null,
+  videoUrl: "",
+  videoStyle: "film",
+  voiceUrl: "",
+  voiceStyle: "cassette",
+  secretUnlockAt: "",
+  secretMessage: "",
   theme: "rose",
   password: "",
   expiresAt: "",
   status: "draft",
 };
+
+// แปลง ISO string ให้เป็นรูปแบบที่ <input type="datetime-local"> ต้องการ (YYYY-MM-DDTHH:mm)
+function toDatetimeLocal(iso?: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+const TOTAL_STEPS = 7;
 
 function EditorPageContent() {
   const router = useRouter();
@@ -81,10 +106,17 @@ function EditorPageContent() {
             message: page.message,
             senderName: page.senderName,
             photos: page.photos || [],
+            scratchCards: Array.isArray(page.scratchCards) ? page.scratchCards : [],
             youtubeUrl: page.youtubeUrl || "",
             youtubeId: page.youtubeId || "",
             youtubeStartAt: page.youtubeStartAt ?? 0,
             youtubeEndAt: page.youtubeEndAt ?? null,
+            videoUrl: page.videoUrl || "",
+            videoStyle: page.videoStyle || "film",
+            voiceUrl: page.voiceUrl || "",
+            voiceStyle: page.voiceStyle || "cassette",
+            secretUnlockAt: toDatetimeLocal(page.secretUnlockAt),
+            secretMessage: page.secretMessage || "",
             theme: page.theme,
             password: "",
             expiresAt: page.expiresAt ? new Date(page.expiresAt).toISOString().split("T")[0] : "",
@@ -138,9 +170,9 @@ function EditorPageContent() {
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || result.error || "เกิดข้อผิดพลาดไม่ทราบสาเหตุ");
 
-      toast({ 
-        title: publish ? "เผยแพร่สำเร็จ! 🎉" : "บันทึกร่างสำเร็จ", 
-        description: publish ? `ลิงก์: ${window.location.origin}/s/${result.slug}` : undefined 
+      toast({
+        title: publish ? "เผยแพร่สำเร็จ! 🎉" : "บันทึกร่างสำเร็จ",
+        description: publish ? `ลิงก์: ${window.location.origin}/s/${result.slug}` : undefined
       });
 
       if (publish) router.push(`/s/${result.slug}`);
@@ -156,16 +188,14 @@ function EditorPageContent() {
     { label: "โอกาส", component: <OccasionPicker data={data} onChange={updateData} /> },
     { label: "ข้อความ", component: <MessageEditor data={data} onChange={updateData} /> },
     { label: "รูปภาพ", component: <PhotoUpload data={data} onChange={updateData} /> },
+    { label: "เซอร์ไพรส์เสริม", component: <ExtrasEditor data={data} onChange={updateData} /> },
     { label: "เพลง", component: <MusicPicker data={data} onChange={updateData} /> },
     { label: "ธีม", component: <ThemeSelector data={data} onChange={updateData} /> },
-    { label: "เซอร์ไพรส์", component: <ExtrasEditor data={data} onChange={updateData} /> },
     { label: "บันทึก", component: <SaveSettings data={data} onChange={updateData} lastSaved={lastSaved} isSaving={isSaving} /> },
   ];
-  const stepLabels = steps.map(s => s.label);
-  const isLastStep = step === steps.length;
 
   return (
-    <main className="max-w-4xl mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
+    <main className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="flex justify-end">
         <Button
           variant="outline"
@@ -173,10 +203,10 @@ function EditorPageContent() {
           className="border-rose-200 text-rose-600 hover:bg-rose-50 gap-2"
         >
           <Eye className="w-4 h-4" />
-          <span className="hidden sm:inline">Preview</span>
+          Preview
         </Button>
       </div>
-      <Stepper currentStep={step} totalSteps={steps.length} onChange={setStep} labels={stepLabels} />
+      <Stepper currentStep={step} totalSteps={TOTAL_STEPS} labels={steps.map(s => s.label)} onChange={setStep} />
 
       <AnimatePresence mode="wait">
         <motion.div
@@ -185,36 +215,36 @@ function EditorPageContent() {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.3 }}
-          className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 border border-rose-100 shadow-sm min-h-[300px] sm:min-h-[400px]"
+          className="bg-white rounded-2xl p-8 border border-rose-100 shadow-sm min-h-[400px]"
         >
           {steps[step - 1].component}
         </motion.div>
       </AnimatePresence>
 
-      <div className={`flex gap-3 ${isLastStep ? "flex-col sm:flex-row sm:justify-between sm:items-center" : "justify-between items-center"}`}>
+      <div className="flex justify-between items-center">
         <Button
           variant="outline"
           onClick={() => setStep(s => Math.max(1, s - 1))}
           disabled={step === 1}
-          className={`border-rose-200 text-rose-600 hover:bg-rose-50 ${isLastStep ? "order-3 sm:order-1" : ""}`}
+          className="border-rose-200 text-rose-600 hover:bg-rose-50"
         >
           ← ย้อนกลับ
         </Button>
 
-        {!isLastStep ? (
+        {step < TOTAL_STEPS ? (
           <Button
-            onClick={() => setStep(s => Math.min(steps.length, s + 1))}
+            onClick={() => setStep(s => Math.min(TOTAL_STEPS, s + 1))}
             className="bg-gradient-to-r from-rose-400 to-pink-500 text-white shadow-md hover:shadow-lg"
           >
             ถัดไป →
           </Button>
         ) : (
-          <div className="flex flex-col sm:flex-row gap-3 order-1 sm:order-2">
+          <div className="flex gap-3">
             <Button
               variant="outline"
               onClick={() => handleSave(false)}
               disabled={isLoading}
-              className="border-rose-200 w-full sm:w-auto"
+              className="border-rose-200"
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               บันทึกร่าง
@@ -222,7 +252,7 @@ function EditorPageContent() {
             <Button
               onClick={() => handleSave(true)}
               disabled={isLoading}
-              className="bg-gradient-to-r from-rose-400 to-pink-500 text-white shadow-lg hover:shadow-xl w-full sm:w-auto"
+              className="bg-gradient-to-r from-rose-400 to-pink-500 text-white shadow-lg hover:shadow-xl"
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               เผยแพร่เลย! 🚀
