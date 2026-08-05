@@ -167,7 +167,7 @@ export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scro
       });
     }
 
-    list.push({ key: "letter", node: <LetterContent page={page} /> });
+    list.push({ key: "letter", node: <LetterContent page={page} theme={themeKey} /> });
  
     if (hasGallery) {
       list.push({
