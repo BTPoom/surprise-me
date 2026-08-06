@@ -4,7 +4,7 @@ import { EditorData } from "@/app/(dashboard)/editor/page";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Save, Clock, Lock } from "lucide-react";
+import { Save, Clock, Lock, Hourglass } from "lucide-react";
 
 export function SaveSettings({ 
   data, 
@@ -62,6 +62,20 @@ export function SaveSettings({
             className="rounded-lg border-slate-200"
           />
           <p className="text-xs text-slate-400">หน้าจะไม่สามารถเข้าถึงได้หลังวันที่นี้</p>
+        </div>
+
+        <div className="p-4 rounded-xl border border-slate-200 space-y-3 md:col-span-2">
+          <div className="flex items-center gap-2">
+            <Hourglass className="w-4 h-4 text-slate-500" />
+            <Label className="font-medium">วันเซอร์ไพรส์ (ไม่บังคับ)</Label>
+          </div>
+          <Input
+            type="datetime-local"
+            value={data.scheduledAt}
+            onChange={e => onChange({ scheduledAt: e.target.value })}
+            className="rounded-lg border-slate-200"
+          />
+          <p className="text-xs text-slate-400">ถ้าตั้งไว้ ผู้รับจะเห็นหน้านับถอยหลังก่อนถึงเวลานี้ก่อนเปิดข้อความจริง</p>
         </div>
       </div>
 

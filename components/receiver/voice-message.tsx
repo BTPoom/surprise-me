@@ -12,7 +12,7 @@ interface VoiceMessageProps {
   subtitle?: string;
   duration?: number; // seconds (optional hint)
   style?: VoiceStyle;
-  theme?: "rose" | "blue" | "gold" | "green" | "purple";
+  theme?: "rose" | "blue" | "gold" | "green" | "purple" | "night";
   className?: string;
 }
 
@@ -22,6 +22,7 @@ const THEME = {
   gold: "text-amber-600 bg-amber-500",
   green: "text-emerald-600 bg-emerald-500",
   purple: "text-violet-600 bg-violet-500",
+  night: "text-amber-200 bg-indigo-600",
 };
 
 function formatTime(sec: number) {

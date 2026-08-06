@@ -15,6 +15,8 @@ import { SurpriseVideo, VideoStyle } from "./surprise-video";
 import { VoiceMessage, VoiceStyle } from "./voice-message";
 import { TimeLocked } from "./time-locked";
 import { ScratchCard } from "./scratch-card";
+import { CountdownScreen } from "./countdown-screen";
+import { TypewriterEnding } from "./typewriter-ending";
  
 // ฟอนต์ไทยหรูสำหรับหน้าผู้รับโดยเฉพาะ (สโคปแค่หน้านี้ ไม่กระทบฟอนต์ส่วนอื่นของแอป)
 const notoSerifTh = Noto_Serif_Thai({
@@ -66,19 +68,21 @@ interface PageData {
   voiceUrl?: string | null;
   voiceStyle?: string | null;
   secretUnlockAt?: string | Date | null;
+  scheduledAt?: string | Date | null;
   secretMessage?: string | null;
   photos: Photo[];
 }
  
-type Phase = "intro" | "envelope" | "content";
-export type ScrollTarget = "letter" | "gallery" | "scratch" | "music" | "video" | "voice" | "secret" | "reaction" | null;
+type Phase = "countdown" | "intro" | "envelope" | "content";
+export type ScrollTarget = "ending" | "letter" | "gallery" | "scratch" | "music" | "video" | "voice" | "secret" | "reaction" | "gacha" | null;
  
-const THEME_MAP: Record<string, "rose" | "blue" | "gold" | "green" | "purple"> = {
+const THEME_MAP: Record<string, "rose" | "blue" | "gold" | "green" | "purple" | "night"> = {
   rose: "rose",
   blue: "blue",
   gold: "gold",
   green: "green",
   purple: "purple",
+  night: "night",
 };
 
 const BG_THEME: Record<"rose" | "blue" | "gold" | "green" | "purple", string> = {
@@ -89,12 +93,31 @@ const BG_THEME: Record<"rose" | "blue" | "gold" | "green" | "purple", string> = 
   purple: "from-violet-50 via-white to-purple-50",
 };
 
-const DOT_THEME: Record<"rose" | "blue" | "gold" | "green" | "purple", { active: string; inactive: string; hover: string }> = {
+const DOT_THEME: Record<"rose" | "blue" | "gold" | "green" | "purple" | "night", { active: string; inactive: string; hover: string }> = {
   rose: { active: "bg-rose-500 shadow-[0_0_0_3px_rgba(244,63,94,0.2)]", inactive: "bg-rose-300/50", hover: "group-hover:bg-rose-400/70" },
   blue: { active: "bg-sky-500 shadow-[0_0_0_3px_rgba(14,165,233,0.2)]", inactive: "bg-sky-300/50", hover: "group-hover:bg-sky-400/70" },
   gold: { active: "bg-gold-500 shadow-[0_0_0_3px_rgba(184,137,43,0.2)]", inactive: "bg-wine-300/50", hover: "group-hover:bg-gold-400/70" },
   green: { active: "bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.2)]", inactive: "bg-emerald-300/50", hover: "group-hover:bg-emerald-400/70" },
   purple: { active: "bg-violet-500 shadow-[0_0_0_3px_rgba(139,92,246,0.2)]", inactive: "bg-violet-300/50", hover: "group-hover:bg-violet-400/70" },
+  night: { active: "bg-amber-200 shadow-[0_0_0_3px_rgba(251,191,36,0.25)]", inactive: "bg-white/25", hover: "group-hover:bg-amber-200/60" },
+};
+
+const SCROLL_THEME: Record<"rose" | "blue" | "gold" | "green" | "purple" | "night", string> = {
+  rose: "text-rose-400/70",
+  blue: "text-sky-400/70",
+  gold: "text-gold-400/70",
+  green: "text-emerald-400/70",
+  purple: "text-violet-400/70",
+  night: "text-amber-200/60",
+};
+
+const ENDING_THEME: Record<"rose" | "blue" | "gold" | "green" | "purple" | "night", { icon: string; divider: string; text: string }> = {
+  rose: { icon: "text-rose-400", divider: "bg-rose-300/50", text: "text-rose-400/60" },
+  blue: { icon: "text-sky-400", divider: "bg-sky-300/50", text: "text-sky-400/60" },
+  gold: { icon: "text-gold-400", divider: "bg-gold-300/50", text: "text-wine-400/60" },
+  green: { icon: "text-emerald-400", divider: "bg-emerald-300/50", text: "text-emerald-400/60" },
+  purple: { icon: "text-violet-400", divider: "bg-violet-300/50", text: "text-violet-400/60" },
+  night: { icon: "text-amber-200", divider: "bg-amber-200/30", text: "text-amber-100/50" },
 };
  
 interface ReceiverViewProps {
@@ -110,7 +133,10 @@ interface Slide {
 }
  
 export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scrollToSection }: ReceiverViewProps) {
-  const [internalPhase, setInternalPhase] = useState<Phase>("intro");
+  const hasCountdown = Boolean(
+    page.scheduledAt && new Date(page.scheduledAt).getTime() > Date.now()
+  );
+  const [internalPhase, setInternalPhase] = useState<Phase>(hasCountdown ? "countdown" : "intro");
   const phase = controlledPhase ?? internalPhase;
   const setPhase = (p: Phase) => {
     onPhaseChange ? onPhaseChange(p) : setInternalPhase(p);
@@ -148,7 +174,38 @@ export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scro
  
   // รวมทุกหมวดที่มีจริงเป็นลิสต์ "สไลด์" เดียว — แต่ละหมวดคือหนึ่งหน้าจอเต็ม เลื่อนทีละหมวด
   const slides = useMemo<Slide[]>(() => {
-    const list: Slide[] = [];
+    const list: Slide[] = [
+      {
+        key: "ending",
+        node: (
+          <div className="flex flex-col items-center gap-14">
+            <TypewriterEnding
+              phrases={[page.title || "ขอบคุณนะ", "รักนะ ตลอดไป"]}
+              subtitle={page.senderName ? `จาก ${page.senderName} ด้วยความรักและความตั้งใจ` : undefined}
+              theme={themeKey}
+              onReplay={() => {
+                setPhase(hasCountdown ? "countdown" : "intro");
+              }}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, amount: 0.5 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="flex flex-col items-center gap-4"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className={ENDING_THEME[themeKey].icon}>
+                <path d="M12 0 L14.2 9.8 L24 12 L14.2 14.2 L12 24 L9.8 14.2 L0 12 L9.8 9.8 Z" fill="currentColor" />
+              </svg>
+              <span className={`h-px w-10 ${ENDING_THEME[themeKey].divider}`} />
+              <p className={`text-center font-sansTh text-[11px] ${ENDING_THEME[themeKey].text} tracking-[0.15em]`}>
+                สร้างด้วยความตั้งใจ บน SurpriseMe
+              </p>
+            </motion.div>
+          </div>
+        ),
+      },
+    ];
 
     if (hasMusic) {
       list.push({
@@ -194,6 +251,7 @@ export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scro
                   width={300}
                   height={160}
                   overlayText={card.overlayText}
+                  theme={themeKey}
                   onRevealed={() => handleCardRevealed(card.id)}
                 >
                   <div className="flex flex-col items-center justify-center text-center px-4">
@@ -250,10 +308,11 @@ export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scro
         node: (
           <>
             <SectionHeader label="ส่งความรู้สึกกลับ" />
-            <ReactionBar pageId={page.id} occasion={page.occasion} />
+            <ReactionBar pageId={page.id} occasion={page.occasion} theme={themeKey} />
           </>
         ),
       });
+
     }
  
     return list;
@@ -328,10 +387,19 @@ export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scro
         themeKey === "gold" && "from-amber-50 via-white to-yellow-50",
         themeKey === "green" && "from-emerald-50 via-white to-green-50",
         themeKey === "purple" && "from-violet-50 via-white to-purple-50",
+        themeKey === "night" && "from-[#120c24] via-[#1b1130] to-[#0d0916]",
       ].filter(Boolean).join(" ")}
     >
-      <BackgroundEffects />
+      <BackgroundEffects theme={themeKey} />
  
+      {phase === "countdown" && page.scheduledAt && (
+        <CountdownScreen
+          targetDate={page.scheduledAt}
+          theme={themeKey}
+          onComplete={() => setPhase("intro")}
+        />
+      )}
+
       {phase === "intro" && (
         <OccasionIntro occasion={page.occasion} theme={page.theme} onComplete={() => setPhase("envelope")} />
       )}
@@ -410,7 +478,7 @@ export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scro
                     <motion.div
                       animate={{ y: [0, 8, 0] }}
                       transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-                      className="absolute bottom-8 flex flex-col items-center gap-1.5 text-gold-400/70"
+                      className={`absolute bottom-8 flex flex-col items-center gap-1.5 ${SCROLL_THEME[themeKey]}`}
                     >
                       <span className="font-sansTh text-[11px] tracking-[0.2em]">เลื่อนต่อ</span>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -421,27 +489,9 @@ export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scro
                 </section>
               ))}
  
-              {/* สไลด์ปิดท้าย */}
-              <section className="min-h-screen w-full snap-start snap-always flex flex-col items-center justify-center px-4 py-20">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: false, amount: 0.5 }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
-                  className="flex flex-col items-center gap-4"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-gold-400">
-                    <path d="M12 0 L14.2 9.8 L24 12 L14.2 14.2 L12 24 L9.8 14.2 L0 12 L9.8 9.8 Z" fill="currentColor" />
-                  </svg>
-                  <span className="h-px w-10 bg-gold-300/50" />
-                  <p className="text-center font-sansTh text-[11px] text-wine-400/60 tracking-[0.15em]">
-                    สร้างด้วยความตั้งใจ บน SurpriseMe
-                  </p>
-                </motion.div>
-              </section>
             </div>
  
-            {page.endingEffect !== "none" && <EndingEffect type={page.endingEffect} />}
+            {page.endingEffect !== "none" && <EndingEffect type={page.endingEffect} theme={themeKey} />}
           </motion.div>
         )}
       </AnimatePresence>
@@ -449,7 +499,21 @@ export function ReceiverView({ page, phase: controlledPhase, onPhaseChange, scro
   );
 }
  
-function EndingEffect({ type }: { type: string }) {
+const THEME_EMOJI: Record<
+  "rose" | "blue" | "gold" | "green" | "purple" | "night",
+  { confetti: string[]; hearts: string[] }
+> = {
+  rose: { confetti: ["✨", "🤍", "🌸", "💫", "✦", "💕"], hearts: ["🤍", "✨", "💗", "💕"] },
+  blue: { confetti: ["✨", "🤍", "❄️", "💫", "✦", "🩵"], hearts: ["🤍", "✨", "🩵", "💙"] },
+  gold: { confetti: ["✨", "🤍", "🌟", "💫", "✦", "🕊️"], hearts: ["🤍", "✨", "💛", "🕊️"] },
+  green: { confetti: ["✨", "🤍", "🍃", "💫", "✦", "🌿"], hearts: ["🤍", "✨", "🌿", "💚"] },
+  purple: { confetti: ["✨", "🤍", "🔮", "💫", "✦", "💜"], hearts: ["🤍", "✨", "💜", "🔮"] },
+  night: { confetti: ["✨", "🌙", "⭐", "💫", "✦", "🤍"], hearts: ["🌙", "✨", "⭐", "🤍"] },
+};
+
+function EndingEffect({ type, theme }: { type: string; theme: "rose" | "blue" | "gold" | "green" | "purple" | "night" }) {
+  const emoji = THEME_EMOJI[theme] || THEME_EMOJI.rose;
+
   if (type === "confetti") {
     return (
       <div className="fixed inset-0 pointer-events-none z-40 overflow-hidden">
@@ -462,13 +526,13 @@ function EndingEffect({ type }: { type: string }) {
             transition={{ duration: 3 + Math.random() * 2, delay: Math.random() * 0.8 }}
             className="absolute text-xl md:text-2xl"
           >
-            {["✨", "🤍", "🌟", "💫", "✦", "🕊️"][i % 6]}
+            {emoji.confetti[i % emoji.confetti.length]}
           </motion.div>
         ))}
       </div>
     );
   }
- 
+
   if (type === "hearts") {
     return (
       <div className="fixed inset-0 pointer-events-none z-40 overflow-hidden">
@@ -481,12 +545,12 @@ function EndingEffect({ type }: { type: string }) {
             transition={{ duration: 5, delay: i * 0.3 }}
             className="absolute text-2xl md:text-3xl"
           >
-            {["🤍", "✨", "💛", "🕊️"][i % 4]}
+            {emoji.hearts[i % emoji.hearts.length]}
           </motion.div>
         ))}
       </div>
     );
   }
- 
+
   return null;
 }

@@ -10,7 +10,7 @@ interface TimeLockedProps {
   previewText?: string;
   children: React.ReactNode;
   onUnlock?: () => void;
-  theme?: "rose" | "blue" | "gold" | "green" | "purple";
+  theme?: "rose" | "blue" | "gold" | "green" | "purple" | "night";
   className?: string;
 }
 
@@ -20,6 +20,7 @@ const THEME_STYLES = {
   gold: { text: "text-amber-600", bg: "bg-amber-500", light: "bg-amber-50", border: "border-amber-200", ring: "ring-amber-200" },
   green: { text: "text-emerald-600", bg: "bg-emerald-500", light: "bg-emerald-50", border: "border-emerald-200", ring: "ring-emerald-200" },
   purple: { text: "text-violet-600", bg: "bg-violet-500", light: "bg-violet-50", border: "border-violet-200", ring: "ring-violet-200" },
+  night: { text: "text-amber-200", bg: "bg-indigo-600", light: "bg-white/10", border: "border-white/15", ring: "ring-white/20" },
 };
 
 function pad(n: number) {

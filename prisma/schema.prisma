@@ -74,6 +74,7 @@ model Page {
   youtubeStartAt Int?       @default(0)
   youtubeEndAt   Int?
   scratchCards   Json?      @default("[]")
+  gachaMessages  Json?      @default("[]")
   videoUrl       String?
   videoStyle     String?    @default("film")
   voiceUrl       String?

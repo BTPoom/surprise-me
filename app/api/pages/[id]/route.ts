@@ -32,6 +32,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const { photos, id, ...rest } = body;
     const data = { ...rest };
 
+    if (data.gachaMessages !== undefined && typeof data.gachaMessages === "string") {
+      try { data.gachaMessages = JSON.parse(data.gachaMessages); } catch { data.gachaMessages = []; }
+    }
+
     if (data.scratchCards !== undefined && typeof data.scratchCards === "string") {
       try { data.scratchCards = JSON.parse(data.scratchCards); } catch { data.scratchCards = []; }
     }

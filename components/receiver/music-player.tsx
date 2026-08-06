@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 import YouTube from "react-youtube";
 
-type ThemeKey = "rose" | "blue" | "gold" | "green" | "purple";
+type ThemeKey = "rose" | "blue" | "gold" | "green" | "purple" | "night";
 
 interface MusicPlayerProps {
   youtubeId: string;
@@ -20,6 +20,7 @@ const THEME: Record<ThemeKey, { gradient: string; track: string; fill: string; l
   gold: { gradient: "from-amber-500 to-yellow-600", track: "bg-amber-100", fill: "from-amber-400 to-yellow-500", lightBg: "bg-amber-50", lightText: "text-amber-500" },
   green: { gradient: "from-emerald-500 to-green-600", track: "bg-emerald-100", fill: "from-emerald-400 to-green-500", lightBg: "bg-emerald-50", lightText: "text-emerald-500" },
   purple: { gradient: "from-violet-500 to-purple-600", track: "bg-violet-100", fill: "from-violet-400 to-purple-500", lightBg: "bg-violet-50", lightText: "text-violet-500" },
+  night: { gradient: "from-indigo-600 to-slate-800", track: "bg-white/10", fill: "from-amber-300 to-amber-400", lightBg: "bg-white/10", lightText: "text-amber-200" },
 };
 
 export function MusicPlayer({ youtubeId, startAt = 0, endAt, theme = "rose" }: MusicPlayerProps) {

@@ -2,12 +2,24 @@
 
 import React, { useRef, useEffect, useState, useCallback } from "react";
 
+type ThemeKey = "rose" | "blue" | "gold" | "green" | "purple" | "night";
+
+const THEME: Record<ThemeKey, { overlayColor: string; prizeBg: string; prizeBorder: string }> = {
+  rose: { overlayColor: "#fb7185", prizeBg: "from-rose-50 to-pink-100", prizeBorder: "border-rose-200" },
+  blue: { overlayColor: "#38bdf8", prizeBg: "from-sky-50 to-blue-100", prizeBorder: "border-sky-200" },
+  gold: { overlayColor: "#d4af5a", prizeBg: "from-amber-50 to-yellow-100", prizeBorder: "border-amber-200" },
+  green: { overlayColor: "#34d399", prizeBg: "from-emerald-50 to-green-100", prizeBorder: "border-emerald-200" },
+  purple: { overlayColor: "#a78bfa", prizeBg: "from-violet-50 to-purple-100", prizeBorder: "border-violet-200" },
+  night: { overlayColor: "#4c3d8f", prizeBg: "from-indigo-950 to-slate-900", prizeBorder: "border-white/15" },
+};
+
 interface ScratchCardProps {
   width?: number;
   height?: number;
   overlayText?: string;
   overlayColor?: string;
   revealThreshold?: number;
+  theme?: ThemeKey;
   onRevealed?: () => void;
   children: React.ReactNode;
   className?: string;
@@ -17,8 +29,9 @@ export function ScratchCard({
   width = 340,
   height = 180,
   overlayText = "ขูดที่นี่เพื่อเปิดเซอร์ไพรส์",
-  overlayColor = "#9ca3af",
+  overlayColor,
   revealThreshold = 45,
+  theme = "rose",
   onRevealed,
   children,
   className,
@@ -27,6 +40,8 @@ export function ScratchCard({
   const [isRevealed, setIsRevealed] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
   const [percent, setPercent] = useState(0);
+  const t = THEME[theme] || THEME.rose;
+  const resolvedOverlayColor = overlayColor || t.overlayColor;
 
   const getPos = useCallback(
     (e: MouseEvent | TouchEvent) => {
@@ -83,7 +98,7 @@ export function ScratchCard({
     ctx.globalCompositeOperation = "source-over";
 
     // Base color
-    ctx.fillStyle = overlayColor;
+    ctx.fillStyle = resolvedOverlayColor;
     ctx.fillRect(0, 0, width, height);
 
     // Pattern lines
@@ -105,7 +120,7 @@ export function ScratchCard({
     ctx.shadowBlur = 4;
     ctx.fillText(overlayText, width / 2, height / 2);
     ctx.shadowBlur = 0;
-  }, [width, height, overlayColor, overlayText]);
+  }, [width, height, resolvedOverlayColor, overlayText]);
 
   // Events
   useEffect(() => {
@@ -154,7 +169,7 @@ export function ScratchCard({
       style={{ width, height }}
     >
       {/* Hidden prize layer */}
-      <div className="absolute inset-0 flex items-center justify-center rounded-2xl overflow-hidden bg-gradient-to-br from-rose-50 to-pink-100 border-2 border-rose-200 shadow-inner">
+      <div className={`absolute inset-0 flex items-center justify-center rounded-2xl overflow-hidden bg-gradient-to-br ${t.prizeBg} border-2 ${t.prizeBorder} shadow-inner`}>
         {children}
       </div>
 

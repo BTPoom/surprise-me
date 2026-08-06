@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Sparkles, LayoutDashboard, LogOut } from "lucide-react";
+import { Sparkles, LayoutDashboard, LogOut, Dices } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface NavbarProps {
@@ -28,6 +28,13 @@ export function Navbar({ user, onSignOut }: NavbarProps) {
 
         {/* Navigation Actions */}
         <div className="flex items-center gap-3">
+          <Link href="/gacha">
+            <Button variant="ghost" size="sm" className="rounded-xl text-gray-600 hover:text-pink-600 hover:bg-pink-50 font-medium gap-2">
+              <Dices className="w-4 h-4" />
+              <span className="hidden sm:inline">กาชาปอง</span>
+            </Button>
+          </Link>
+
           <Link href="/dashboard">
             <Button variant="ghost" size="sm" className="rounded-xl text-gray-600 hover:text-pink-600 hover:bg-pink-50 font-medium gap-2">
               <LayoutDashboard className="w-4 h-4" />

@@ -30,6 +30,12 @@ export async function POST(req: Request) {
     if (!Array.isArray(sections)) sections = ["letter", "reaction", "text-reply"];
     
     // แปลง questions
+    let gachaMessages = body.gachaMessages;
+    if (typeof gachaMessages === "string") {
+      try { gachaMessages = JSON.parse(gachaMessages); } catch { gachaMessages = []; }
+    }
+    if (!Array.isArray(gachaMessages)) gachaMessages = [];
+
     let questions = body.questions;
     if (typeof questions === "string") {
       try { questions = JSON.parse(questions); } catch { questions = []; }
@@ -66,6 +72,7 @@ export async function POST(req: Request) {
         sections,
         questions,
         endingEffect,
+        gachaMessages,
         youtubeUrl: body.youtubeUrl || null,
         youtubeId: body.youtubeId || null,
         youtubeStartAt,

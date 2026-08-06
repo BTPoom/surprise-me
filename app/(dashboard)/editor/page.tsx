@@ -31,6 +31,7 @@ export interface EditorData {
   senderName: string;
   photos: { url: string; caption: string; order: number }[];
   scratchCards: ScratchCard[];
+  gachaMessages: string[];
   youtubeUrl: string;
   youtubeId: string;
   youtubeStartAt: number;
@@ -40,6 +41,7 @@ export interface EditorData {
   voiceUrl: string;
   voiceStyle: string;
   secretUnlockAt: string;
+  scheduledAt: string;
   secretMessage: string;
   theme: string;
   password: string;
@@ -54,6 +56,7 @@ const initialData: EditorData = {
   senderName: "",
   photos: [],
   scratchCards: [],
+  gachaMessages: [],
   youtubeUrl: "",
   youtubeId: "",
   youtubeStartAt: 0,
@@ -63,6 +66,7 @@ const initialData: EditorData = {
   voiceUrl: "",
   voiceStyle: "cassette",
   secretUnlockAt: "",
+  scheduledAt: "",
   secretMessage: "",
   theme: "rose",
   password: "",
@@ -107,6 +111,7 @@ function EditorPageContent() {
             senderName: page.senderName,
             photos: page.photos || [],
             scratchCards: Array.isArray(page.scratchCards) ? page.scratchCards : [],
+            gachaMessages: Array.isArray(page.gachaMessages) ? page.gachaMessages : [],
             youtubeUrl: page.youtubeUrl || "",
             youtubeId: page.youtubeId || "",
             youtubeStartAt: page.youtubeStartAt ?? 0,
@@ -116,6 +121,7 @@ function EditorPageContent() {
             voiceUrl: page.voiceUrl || "",
             voiceStyle: page.voiceStyle || "cassette",
             secretUnlockAt: toDatetimeLocal(page.secretUnlockAt),
+            scheduledAt: toDatetimeLocal(page.scheduledAt),
             secretMessage: page.secretMessage || "",
             theme: page.theme,
             password: "",

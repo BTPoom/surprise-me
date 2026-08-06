@@ -350,6 +350,7 @@ export function ExtrasEditor({ data, onChange }: { data: EditorData; onChange: (
           </button>
         )}
       </section>
+
     </div>
   );
 }

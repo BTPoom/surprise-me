@@ -7,7 +7,7 @@ import { EditorData } from "@/app/(dashboard)/editor/page";
 import { ReceiverView, ScrollTarget } from "@/components/receiver/receiver-view";
 
 type DeviceSize = "mobile" | "tablet" | "desktop";
-type PreviewPhase = "intro" | "envelope" | "content";
+type PreviewPhase = "countdown" | "intro" | "envelope" | "content";
 
 const DEVICE_WIDTHS: Record<DeviceSize, string> = {
   mobile: "390px",

@@ -11,7 +11,7 @@ interface Photo {
   order: number;
 }
 
-type ThemeKey = "rose" | "blue" | "gold" | "green" | "purple";
+type ThemeKey = "rose" | "blue" | "gold" | "green" | "purple" | "night";
 
 const THEME: Record<ThemeKey, { caption: string; fallback: string }> = {
   rose: { caption: "text-rose-500", fallback: "from-rose-100 to-pink-200" },
@@ -19,6 +19,7 @@ const THEME: Record<ThemeKey, { caption: string; fallback: string }> = {
   gold: { caption: "text-amber-500", fallback: "from-amber-100 to-yellow-200" },
   green: { caption: "text-emerald-500", fallback: "from-emerald-100 to-green-200" },
   purple: { caption: "text-violet-500", fallback: "from-violet-100 to-purple-200" },
+  night: { caption: "text-amber-200", fallback: "from-indigo-950 to-slate-900" },
 };
 
 export function PolaroidGallery({ photos, theme = "rose" }: { photos: Photo[]; theme?: ThemeKey }) {

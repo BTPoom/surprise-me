@@ -12,7 +12,7 @@ interface SurpriseVideoProps {
   title?: string;
   subtitle?: string;
   style?: VideoStyle;
-  theme?: "rose" | "blue" | "gold" | "green" | "purple";
+  theme?: "rose" | "blue" | "gold" | "green" | "purple" | "night";
   className?: string;
 }
 
@@ -22,6 +22,7 @@ const THEME = {
   gold: "text-amber-600 bg-amber-500 border-amber-200",
   green: "text-emerald-600 bg-emerald-500 border-emerald-200",
   purple: "text-violet-600 bg-violet-500 border-violet-200",
+  night: "text-amber-200 bg-indigo-600 border-white/10",
 };
 
 export function SurpriseVideo({
